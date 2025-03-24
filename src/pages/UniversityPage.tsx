@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
-import { BookOpen, Calendar, Clock, File, FileText, Map, Users, ExternalLink } from 'lucide-react';
+import { BookOpen, Calendar, Clock, File, FileText, Map, Users, ExternalLink, GraduationCap, Layers, Book } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ResourceCard from '../components/ResourceCard';
@@ -10,8 +10,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { University, Resource, universitiesAPI } from '../utils/api';
+import { University, Resource, universitiesAPI, BranchSubject } from '../utils/api';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const UniversityPage = () => {
   const { universityId } = useParams<{ universityId: string }>();
@@ -20,6 +22,8 @@ const UniversityPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSemester, setSelectedSemester] = useState<string>('all');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [selectedTab, setSelectedTab] = useState<string>('resources');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -141,15 +145,22 @@ const UniversityPage = () => {
           </div>
         </section>
         
-        {/* Resources Section */}
+        {/* Main Content Section */}
         <section className="py-12">
           <div className="container mx-auto px-4 md:px-6">
-            <Tabs defaultValue="resources" className="w-full">
-              <TabsList className="grid w-full md:w-auto grid-cols-2 mb-8">
+            <Tabs 
+              defaultValue="resources" 
+              className="w-full"
+              value={selectedTab}
+              onValueChange={setSelectedTab}
+            >
+              <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
                 <TabsTrigger value="resources">Study Resources</TabsTrigger>
+                <TabsTrigger value="branches">Branches & Subjects</TabsTrigger>
                 <TabsTrigger value="about">About University</TabsTrigger>
               </TabsList>
               
+              {/* Resources Tab */}
               <TabsContent value="resources" className="w-full">
                 <Card>
                   <CardContent className="p-6">
@@ -230,6 +241,127 @@ const UniversityPage = () => {
                 </Card>
               </TabsContent>
               
+              {/* Branches & Subjects Tab */}
+              <TabsContent value="branches" className="w-full">
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-6">Branches & Subjects</h2>
+                    
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium mb-2">Select Branch</label>
+                      <Select 
+                        value={selectedBranch} 
+                        onValueChange={setSelectedBranch} 
+                        defaultValue={university.branches[0]?.id.toString() || "all"}
+                      >
+                        <SelectTrigger className="w-full md:w-1/3">
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {university.branches.map(branch => (
+                            <SelectItem key={branch.id} value={branch.id.toString()}>
+                              {branch.name} ({branch.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {selectedBranch !== 'all' && (
+                      <div className="mt-8">
+                        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                          <div className="flex items-start">
+                            <GraduationCap className="h-6 w-6 text-blue-700 mr-3 mt-1" />
+                            <div>
+                              <h3 className="text-xl font-semibold text-blue-900">
+                                {university.branches.find(b => b.id.toString() === selectedBranch)?.name}
+                              </h3>
+                              <p className="text-blue-700">
+                                Code: {university.branches.find(b => b.id.toString() === selectedBranch)?.code}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Accordion type="single" collapsible className="w-full">
+                          {Array.from({ length: 8 }, (_, i) => i + 1).map(semester => {
+                            const branch = university.branches.find(b => b.id.toString() === selectedBranch);
+                            const subjects = branch?.subjects[semester] || [];
+                            
+                            return (
+                              <AccordionItem key={semester} value={`semester-${semester}`}>
+                                <AccordionTrigger className="text-lg hover:no-underline">
+                                  <div className="flex items-center">
+                                    <Layers className="h-5 w-5 mr-2 text-blue-600" />
+                                    <span>Semester {semester}</span>
+                                    <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                      {subjects.length} subjects
+                                    </span>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  {subjects.length > 0 ? (
+                                    <div className="rounded-md border overflow-hidden">
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead>Code</TableHead>
+                                            <TableHead>Subject Name</TableHead>
+                                            <TableHead>Credits</TableHead>
+                                            <TableHead className="hidden md:table-cell">Description</TableHead>
+                                            <TableHead>Resources</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {subjects.map((subject: BranchSubject) => (
+                                            <TableRow key={subject.id}>
+                                              <TableCell className="font-medium">{subject.code}</TableCell>
+                                              <TableCell>{subject.name}</TableCell>
+                                              <TableCell>{subject.credits}</TableCell>
+                                              <TableCell className="hidden md:table-cell max-w-xs truncate">
+                                                {subject.description}
+                                              </TableCell>
+                                              <TableCell>
+                                                <Button 
+                                                  variant="outline" 
+                                                  size="sm"
+                                                  className="flex items-center"
+                                                  onClick={() => {
+                                                    setSelectedTab('resources');
+                                                    setSelectedSemester(semester.toString());
+                                                    setSelectedSubject(subject.name);
+                                                  }}
+                                                >
+                                                  <Book className="h-4 w-4 mr-1" />
+                                                  View
+                                                </Button>
+                                              </TableCell>
+                                            </TableRow>
+                                          ))}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-gray-50 p-6 rounded-md text-center">
+                                      <File className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                                      <h3 className="text-lg font-medium">No subjects available</h3>
+                                      <p className="text-gray-500 mt-1">
+                                        Subject data for this semester is not available yet.
+                                      </p>
+                                    </div>
+                                  )}
+                                </AccordionContent>
+                              </AccordionItem>
+                            );
+                          })}
+                        </Accordion>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* About Tab */}
               <TabsContent value="about">
                 <Card>
                   <CardContent className="p-6">
@@ -264,12 +396,9 @@ const UniversityPage = () => {
                         The university offers a wide range of undergraduate, postgraduate, and doctoral programs across various disciplines including:
                       </p>
                       <ul className="list-disc pl-5 space-y-2 mt-2">
-                        <li>Engineering and Technology</li>
-                        <li>Sciences</li>
-                        <li>Arts and Humanities</li>
-                        <li>Commerce and Management</li>
-                        <li>Law</li>
-                        <li>Medicine and Healthcare</li>
+                        {university.branches.map(branch => (
+                          <li key={branch.id}>{branch.name}</li>
+                        ))}
                       </ul>
                     </div>
                   </CardContent>
