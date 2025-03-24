@@ -7,8 +7,11 @@ import SemesterSection from '../components/SemesterSection';
 import RecentResourcesSection from '../components/RecentResourcesSection';
 import FeaturesSection from '../components/FeaturesSection';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
 
 const Index = () => {
+  const { user } = useAuth();
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);

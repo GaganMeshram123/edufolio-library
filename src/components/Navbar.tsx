@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Search, Menu, X, User, BookOpen } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +20,15 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location]);
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
     <header
@@ -38,13 +48,28 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity">
+            <Link 
+              to="/" 
+              className={`text-sm font-medium transition-opacity ${
+                isActive('/') ? 'opacity-100' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
               Home
             </Link>
-            <Link to="/resources" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity">
+            <Link 
+              to="/resources" 
+              className={`text-sm font-medium transition-opacity ${
+                isActive('/resources') ? 'opacity-100' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
               Resources
             </Link>
-            <Link to="/about" className="text-sm font-medium opacity-90 hover:opacity-100 transition-opacity">
+            <Link 
+              to="/about" 
+              className={`text-sm font-medium transition-opacity ${
+                isActive('/about') ? 'opacity-100' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
               About
             </Link>
             <div className="relative">
@@ -71,10 +96,16 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             <Link 
               to="/login" 
+              className="flex items-center gap-2 py-2 px-4 rounded-full hover:bg-gray-100 transition-colors text-sm font-medium"
+            >
+              <span>Login</span>
+            </Link>
+            <Link 
+              to="/signup" 
               className="flex items-center gap-2 py-2 px-4 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 text-sm font-medium"
             >
               <User className="h-4 w-4" />
-              <span>Login</span>
+              <span>Sign Up</span>
             </Link>
           </div>
         </div>
@@ -83,13 +114,28 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 py-4 border-t border-gray-100 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <Link to="/" className="text-sm font-medium hover:text-blue-600 transition-colors">
+              <Link 
+                to="/" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/') ? 'text-blue-600' : 'hover:text-blue-600'
+                }`}
+              >
                 Home
               </Link>
-              <Link to="/resources" className="text-sm font-medium hover:text-blue-600 transition-colors">
+              <Link 
+                to="/resources" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/resources') ? 'text-blue-600' : 'hover:text-blue-600'
+                }`}
+              >
                 Resources
               </Link>
-              <Link to="/about" className="text-sm font-medium hover:text-blue-600 transition-colors">
+              <Link 
+                to="/about" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/about') ? 'text-blue-600' : 'hover:text-blue-600'
+                }`}
+              >
                 About
               </Link>
               <div className="relative mt-2">
@@ -100,13 +146,21 @@ const Navbar = () => {
                 />
                 <Search className="absolute right-3 top-2 h-5 w-5 text-gray-500" />
               </div>
-              <Link 
-                to="/login" 
-                className="flex items-center gap-2 py-2 px-4 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 text-sm font-medium w-fit"
-              >
-                <User className="h-4 w-4" />
-                <span>Login</span>
-              </Link>
+              <div className="flex flex-col space-y-2 mt-2">
+                <Link 
+                  to="/login" 
+                  className="flex items-center gap-2 py-2 px-4 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium w-fit"
+                >
+                  <span>Login</span>
+                </Link>
+                <Link 
+                  to="/signup" 
+                  className="flex items-center gap-2 py-2 px-4 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 text-sm font-medium w-fit"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Sign Up</span>
+                </Link>
+              </div>
             </div>
           </div>
         )}
