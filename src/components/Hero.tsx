@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, FileText, Clock } from 'lucide-react';
+import { Search, BookOpen, FileText, Clock, School } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
@@ -33,6 +33,7 @@ const Hero = () => {
   const stats = [
     { icon: <BookOpen className="h-5 w-5" />, label: 'Subjects', value: '48+' },
     { icon: <FileText className="h-5 w-5" />, label: 'Resources', value: '1200+' },
+    { icon: <School className="h-5 w-5" />, label: 'Universities', value: '8+' },
     { icon: <Clock className="h-5 w-5" />, label: 'Updated', value: 'Daily' },
   ];
 
@@ -71,7 +72,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Access quality study materials for all engineering semesters. 
+            Access quality study materials for all engineering semesters and universities in Maharashtra. 
             Notes, question papers, and resources organized for maximum productivity.
           </motion.p>
 
@@ -138,10 +139,10 @@ const Hero = () => {
               Browse by Semester
             </a>
             <a 
-              href="#resources" 
+              href="#universities" 
               className="py-3 px-6 rounded-full bg-white border border-gray-200 font-medium hover:bg-gray-50 transition-colors"
             >
-              Latest Resources
+              Browse by University
             </a>
           </motion.div>
         </div>

@@ -12,6 +12,8 @@ import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import ResourcesPage from "./pages/ResourcesPage";
 import AboutPage from "./pages/AboutPage";
+import UniversityPage from "./pages/UniversityPage";
+import UniversitiesListPage from "./pages/UniversitiesListPage";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/semester/:semesterId" element={<SemesterPage />} />
+            <Route path="/university/:universityId" element={<UniversityPage />} />
+            <Route path="/universities" element={<UniversitiesListPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/resources" element={<ResourcesPage />} />

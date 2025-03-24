@@ -1,37 +1,50 @@
 
-import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/Navbar';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import Hero from '../components/Hero';
 import SemesterSection from '../components/SemesterSection';
-import RecentResourcesSection from '../components/RecentResourcesSection';
 import FeaturesSection from '../components/FeaturesSection';
+import RecentResourcesSection from '../components/RecentResourcesSection';
+import UniversitiesSection from '../components/UniversitiesSection';
 import Footer from '../components/Footer';
-import { useAuth } from '../contexts/AuthContext';
+import Navbar from '../components/Navbar';
+import { universitiesAPI } from '../utils/api';
 
 const Index = () => {
-  const { user } = useAuth();
-  
+  const [universities, setUniversities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const fetchUniversities = async () => {
+      try {
+        const data = await universitiesAPI.getUniversities();
+        // Only show first 4 universities on homepage
+        setUniversities(data.slice(0, 4));
+      } catch (error) {
+        console.error("Error fetching universities:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUniversities();
   }, []);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Navbar />
-        <Hero />
-        <SemesterSection />
-        <RecentResourcesSection />
-        <FeaturesSection />
-        <Footer />
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Navbar />
+      <Hero />
+      <SemesterSection />
+      {!isLoading && <UniversitiesSection universities={universities} />}
+      <FeaturesSection />
+      <RecentResourcesSection />
+      <Footer />
+    </motion.div>
   );
 };
 
