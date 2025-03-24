@@ -8,6 +8,8 @@ import ResourceCard from '../components/ResourceCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLocation } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 // Sample data - in a real app, this would come from an API
 const allResources = [
@@ -145,40 +147,83 @@ const ResourcesPage = () => {
   const [selectedSemesters, setSelectedSemesters] = useState<number[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [filteredResources, setFilteredResources] = useState(allResources);
+  const { toast } = useToast();
+  const location = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    
+    // Check if there's a search query in the URL
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('q');
+    if (query) {
+      setSearchTerm(query);
+      performSearch(query);
+      
+      // Show toast notification for search
+      toast({
+        title: "Searching for resources",
+        description: `Found ${getFilteredResources(query).length} results for "${query}"`,
+      });
+    }
+  }, [location.search]);
 
   useEffect(() => {
     // Apply filters
+    applyFilters();
+  }, [searchTerm, selectedSubjects, selectedTypes, selectedSemesters]);
+
+  const getFilteredResources = (term: string, subjects: string[] = selectedSubjects, types: string[] = selectedTypes, sems: number[] = selectedSemesters) => {
     let results = allResources;
     
     // Search filter
-    if (searchTerm) {
+    if (term) {
       results = results.filter(resource => 
-        resource.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        resource.subject.toLowerCase().includes(searchTerm.toLowerCase())
+        resource.title.toLowerCase().includes(term.toLowerCase()) || 
+        resource.subject.toLowerCase().includes(term.toLowerCase())
       );
     }
     
     // Subject filter
-    if (selectedSubjects.length > 0) {
-      results = results.filter(resource => selectedSubjects.includes(resource.subject));
+    if (subjects.length > 0) {
+      results = results.filter(resource => subjects.includes(resource.subject));
     }
     
     // Type filter
-    if (selectedTypes.length > 0) {
-      results = results.filter(resource => selectedTypes.includes(resource.type));
+    if (types.length > 0) {
+      results = results.filter(resource => types.includes(resource.type));
     }
     
     // Semester filter
-    if (selectedSemesters.length > 0) {
-      results = results.filter(resource => selectedSemesters.includes(resource.semester));
+    if (sems.length > 0) {
+      results = results.filter(resource => sems.includes(resource.semester));
     }
     
+    return results;
+  };
+
+  const applyFilters = () => {
+    const results = getFilteredResources(searchTerm);
     setFilteredResources(results);
-  }, [searchTerm, selectedSubjects, selectedTypes, selectedSemesters]);
+  };
+
+  const performSearch = (term: string) => {
+    setSearchTerm(term);
+    const results = getFilteredResources(term);
+    setFilteredResources(results);
+    console.log(`Searching for: ${term}, found ${results.length} results`);
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      performSearch(searchTerm);
+    }
+  };
 
   const toggleSubject = (subject: string) => {
     if (selectedSubjects.includes(subject)) {
@@ -209,6 +254,7 @@ const ResourcesPage = () => {
     setSelectedSubjects([]);
     setSelectedTypes([]);
     setSelectedSemesters([]);
+    setFilteredResources(allResources);
   };
 
   return (
@@ -218,7 +264,7 @@ const ResourcesPage = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Navbar />
+      <Navbar onSearch={performSearch} />
       
       <main className="pt-24 pb-20">
         <section className="bg-blue-50 py-16">
@@ -248,7 +294,8 @@ const ResourcesPage = () => {
                   placeholder="Search for resources by title, subject, etc."
                   className="pl-12 py-6 text-lg rounded-full shadow-md"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchInputChange}
+                  onKeyPress={handleSearchKeyPress}
                 />
               </motion.div>
             </div>

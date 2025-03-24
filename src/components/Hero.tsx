@@ -1,10 +1,13 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, BookOpen, FileText, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -15,6 +18,17 @@ const Hero = () => {
 
     return () => clearTimeout(timeout);
   }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/resources?q=${encodeURIComponent(searchTerm)}`);
+    }
+  };
 
   const stats = [
     { icon: <BookOpen className="h-5 w-5" />, label: 'Subjects', value: '48+' },
@@ -67,17 +81,22 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
               <input 
                 ref={searchInputRef}
                 type="text" 
+                value={searchTerm}
+                onChange={handleSearchChange}
                 placeholder="Search for resources, notes, papers..." 
                 className="w-full py-4 px-6 pr-12 bg-white rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
               />
-              <button className="absolute right-1 top-1 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+              <button 
+                type="submit"
+                className="absolute right-1 top-1 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+              >
                 <Search className="h-5 w-5" />
               </button>
-            </div>
+            </form>
             <p className="text-xs text-gray-500 mt-2">
               Try searching: "Digital Electronics notes" or "Data Structures question paper"
             </p>

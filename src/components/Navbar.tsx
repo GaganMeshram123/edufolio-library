@@ -1,12 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, Menu, X, User, BookOpen } from 'lucide-react';
 
-const Navbar = () => {
+interface NavbarProps {
+  onSearch?: (term: string) => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +33,31 @@ const Navbar = () => {
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      console.log("Navbar search:", searchTerm);
+      
+      // If we're on the resources page and have a direct search handler
+      if (location.pathname === '/resources' && onSearch) {
+        onSearch(searchTerm);
+      } else {
+        // Otherwise, navigate to resources page with search query
+        navigate(`/resources?q=${encodeURIComponent(searchTerm.trim())}`);
+      }
+    }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit(e);
+    }
   };
 
   return (
@@ -72,14 +102,19 @@ const Navbar = () => {
             >
               About
             </Link>
-            <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"
                 placeholder="Search resources..."
                 className="bg-gray-100 px-4 py-2 pr-10 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 transition-all"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onKeyPress={handleSearchKeyPress}
               />
-              <Search className="absolute right-3 top-2 h-5 w-5 text-gray-500" />
-            </div>
+              <button type="submit" className="absolute right-3 top-2 h-5 w-5 text-gray-500">
+                <Search className="h-5 w-5" />
+              </button>
+            </form>
           </nav>
 
           {/* Mobile Navigation */}
@@ -138,14 +173,22 @@ const Navbar = () => {
               >
                 About
               </Link>
-              <div className="relative mt-2">
+              <form 
+                onSubmit={handleSearchSubmit}
+                className="relative mt-2"
+              >
                 <input
                   type="text"
                   placeholder="Search resources..."
                   className="bg-gray-100 px-4 py-2 pr-10 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
                 />
-                <Search className="absolute right-3 top-2 h-5 w-5 text-gray-500" />
-              </div>
+                <button type="submit" className="absolute right-3 top-2 h-5 w-5 text-gray-500">
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
               <div className="flex flex-col space-y-2 mt-2">
                 <Link 
                   to="/login" 
