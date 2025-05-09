@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
-import { BookOpen, Calendar, Clock, File, FileText, Map, Users, ExternalLink, GraduationCap, Layers, Book } from 'lucide-react';
+import { BookOpen, Calendar, Clock, File, FileText, Map, Users, ExternalLink, GraduationCap, Layers, Book, Download, Award } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ResourceCard from '../components/ResourceCard';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { University, Resource, universitiesAPI, BranchSubject } from '../utils/a
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 const UniversityPage = () => {
   const { universityId } = useParams<{ universityId: string }>();
@@ -23,7 +24,7 @@ const UniversityPage = () => {
   const [selectedSemester, setSelectedSemester] = useState<string>('all');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
-  const [selectedTab, setSelectedTab] = useState<string>('resources');
+  const [selectedTab, setSelectedTab] = useState<string>('branches');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,6 +62,13 @@ const UniversityPage = () => {
 
     fetchUniversityData();
   }, [universityId, toast]);
+
+  // Helper to get resources for a specific subject and semester
+  const getResourcesForSubject = (subjectName: string, semester: number) => {
+    return resources.filter(
+      resource => resource.subject === subjectName && resource.semester === semester
+    );
+  };
 
   const filteredResources = resources.filter(resource => {
     const matchesSemester = selectedSemester === 'all' || resource.semester.toString() === selectedSemester;
@@ -149,16 +157,203 @@ const UniversityPage = () => {
         <section className="py-12">
           <div className="container mx-auto px-4 md:px-6">
             <Tabs 
-              defaultValue="resources" 
+              defaultValue="branches" 
               className="w-full"
               value={selectedTab}
               onValueChange={setSelectedTab}
             >
               <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
-                <TabsTrigger value="resources">Study Resources</TabsTrigger>
                 <TabsTrigger value="branches">Branches & Subjects</TabsTrigger>
+                <TabsTrigger value="resources">Study Resources</TabsTrigger>
                 <TabsTrigger value="about">About University</TabsTrigger>
               </TabsList>
+              
+              {/* Branches & Subjects Tab */}
+              <TabsContent value="branches" className="w-full">
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-6">Branches & Subjects</h2>
+                    
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium mb-2">Select Branch</label>
+                      <Select 
+                        value={selectedBranch} 
+                        onValueChange={setSelectedBranch} 
+                        defaultValue={university.branches[0]?.id.toString() || "all"}
+                      >
+                        <SelectTrigger className="w-full md:w-1/3">
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {university.branches.map(branch => (
+                            <SelectItem key={branch.id} value={branch.id.toString()}>
+                              {branch.name} ({branch.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {selectedBranch !== 'all' && (
+                      <div className="mt-8">
+                        <div className="bg-blue-50 p-4 rounded-lg mb-6">
+                          <div className="flex items-start">
+                            <GraduationCap className="h-6 w-6 text-blue-700 mr-3 mt-1" />
+                            <div>
+                              <h3 className="text-xl font-semibold text-blue-900">
+                                {university.branches.find(b => b.id.toString() === selectedBranch)?.name}
+                              </h3>
+                              <p className="text-blue-700">
+                                Code: {university.branches.find(b => b.id.toString() === selectedBranch)?.code}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Accordion type="single" collapsible className="w-full">
+                          {Array.from({ length: 8 }, (_, i) => i + 1).map(semester => {
+                            const branch = university.branches.find(b => b.id.toString() === selectedBranch);
+                            const subjects = branch?.subjects[semester] || [];
+                            
+                            return (
+                              <AccordionItem key={semester} value={`semester-${semester}`}>
+                                <AccordionTrigger className="text-lg hover:no-underline">
+                                  <div className="flex items-center">
+                                    <Layers className="h-5 w-5 mr-2 text-blue-600" />
+                                    <span>Semester {semester}</span>
+                                    <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                      {subjects.length} subjects
+                                    </span>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  {subjects.length > 0 ? (
+                                    <div className="rounded-md border overflow-hidden">
+                                      <Table>
+                                        <TableHeader>
+                                          <TableRow>
+                                            <TableHead>Code</TableHead>
+                                            <TableHead>Subject Name</TableHead>
+                                            <TableHead>Credits</TableHead>
+                                            <TableHead className="hidden md:table-cell">Description</TableHead>
+                                            <TableHead>Resources</TableHead>
+                                          </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                          {subjects.map((subject: BranchSubject) => {
+                                            const subjectResources = getResourcesForSubject(subject.name, semester);
+                                            
+                                            return (
+                                              <TableRow key={subject.id}>
+                                                <TableCell className="font-medium">{subject.code}</TableCell>
+                                                <TableCell>{subject.name}</TableCell>
+                                                <TableCell>{subject.credits}</TableCell>
+                                                <TableCell className="hidden md:table-cell max-w-xs truncate">
+                                                  {subject.description}
+                                                </TableCell>
+                                                <TableCell>
+                                                  <Button 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    className="flex items-center"
+                                                    onClick={() => {
+                                                      setSelectedTab('resources');
+                                                      setSelectedSemester(semester.toString());
+                                                      setSelectedSubject(subject.name);
+                                                    }}
+                                                  >
+                                                    <Book className="h-4 w-4 mr-1" />
+                                                    View ({subjectResources.length})
+                                                  </Button>
+                                                </TableCell>
+                                              </TableRow>
+                                            );
+                                          })}
+                                        </TableBody>
+                                      </Table>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-gray-50 p-6 rounded-md">
+                                      <div className="flex items-center justify-center flex-col">
+                                        <File className="h-10 w-10 text-gray-400 mb-3" />
+                                        <h3 className="text-lg font-medium">No subjects available</h3>
+                                        <p className="text-gray-500 mt-1 text-center">
+                                          Subject data for this semester is not available yet.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Semester Resources Summary */}
+                                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                    <h4 className="font-semibold mb-3 flex items-center">
+                                      <Award className="h-5 w-5 mr-2 text-blue-700" />
+                                      Semester {semester} Important Resources
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      <div className="bg-white p-4 rounded-md shadow-sm border border-blue-100">
+                                        <h5 className="font-medium text-blue-800 mb-2">Exam Papers</h5>
+                                        <ul className="space-y-2">
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Previous Question Papers</span>
+                                          </li>
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Model Answer Papers</span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                      <div className="bg-white p-4 rounded-md shadow-sm border border-blue-100">
+                                        <h5 className="font-medium text-blue-800 mb-2">Study Notes</h5>
+                                        <ul className="space-y-2">
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Faculty Notes</span>
+                                          </li>
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Student Notes</span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                      <div className="bg-white p-4 rounded-md shadow-sm border border-blue-100">
+                                        <h5 className="font-medium text-blue-800 mb-2">Syllabus</h5>
+                                        <ul className="space-y-2">
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Complete Semester Syllabus</span>
+                                          </li>
+                                          <li className="flex items-center">
+                                            <Download className="h-4 w-4 mr-2 text-blue-600" />
+                                            <span className="text-sm">Practical Assignments</span>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                    <div className="mt-4 text-center">
+                                      <Button
+                                        variant="link" 
+                                        className="text-blue-600"
+                                        onClick={() => {
+                                          setSelectedTab('resources');
+                                          setSelectedSemester(semester.toString());
+                                        }}
+                                      >
+                                        View All Semester {semester} Resources →
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            );
+                          })}
+                        </Accordion>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
               
               {/* Resources Tab */}
               <TabsContent value="resources" className="w-full">
@@ -235,126 +430,6 @@ const UniversityPage = () => {
                         >
                           Reset Filters
                         </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              {/* Branches & Subjects Tab */}
-              <TabsContent value="branches" className="w-full">
-                <Card>
-                  <CardContent className="p-6">
-                    <h2 className="text-2xl font-bold mb-6">Branches & Subjects</h2>
-                    
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-2">Select Branch</label>
-                      <Select 
-                        value={selectedBranch} 
-                        onValueChange={setSelectedBranch} 
-                        defaultValue={university.branches[0]?.id.toString() || "all"}
-                      >
-                        <SelectTrigger className="w-full md:w-1/3">
-                          <SelectValue placeholder="Select Branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {university.branches.map(branch => (
-                            <SelectItem key={branch.id} value={branch.id.toString()}>
-                              {branch.name} ({branch.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {selectedBranch !== 'all' && (
-                      <div className="mt-8">
-                        <div className="bg-blue-50 p-4 rounded-lg mb-6">
-                          <div className="flex items-start">
-                            <GraduationCap className="h-6 w-6 text-blue-700 mr-3 mt-1" />
-                            <div>
-                              <h3 className="text-xl font-semibold text-blue-900">
-                                {university.branches.find(b => b.id.toString() === selectedBranch)?.name}
-                              </h3>
-                              <p className="text-blue-700">
-                                Code: {university.branches.find(b => b.id.toString() === selectedBranch)?.code}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <Accordion type="single" collapsible className="w-full">
-                          {Array.from({ length: 8 }, (_, i) => i + 1).map(semester => {
-                            const branch = university.branches.find(b => b.id.toString() === selectedBranch);
-                            const subjects = branch?.subjects[semester] || [];
-                            
-                            return (
-                              <AccordionItem key={semester} value={`semester-${semester}`}>
-                                <AccordionTrigger className="text-lg hover:no-underline">
-                                  <div className="flex items-center">
-                                    <Layers className="h-5 w-5 mr-2 text-blue-600" />
-                                    <span>Semester {semester}</span>
-                                    <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                                      {subjects.length} subjects
-                                    </span>
-                                  </div>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  {subjects.length > 0 ? (
-                                    <div className="rounded-md border overflow-hidden">
-                                      <Table>
-                                        <TableHeader>
-                                          <TableRow>
-                                            <TableHead>Code</TableHead>
-                                            <TableHead>Subject Name</TableHead>
-                                            <TableHead>Credits</TableHead>
-                                            <TableHead className="hidden md:table-cell">Description</TableHead>
-                                            <TableHead>Resources</TableHead>
-                                          </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                          {subjects.map((subject: BranchSubject) => (
-                                            <TableRow key={subject.id}>
-                                              <TableCell className="font-medium">{subject.code}</TableCell>
-                                              <TableCell>{subject.name}</TableCell>
-                                              <TableCell>{subject.credits}</TableCell>
-                                              <TableCell className="hidden md:table-cell max-w-xs truncate">
-                                                {subject.description}
-                                              </TableCell>
-                                              <TableCell>
-                                                <Button 
-                                                  variant="outline" 
-                                                  size="sm"
-                                                  className="flex items-center"
-                                                  onClick={() => {
-                                                    setSelectedTab('resources');
-                                                    setSelectedSemester(semester.toString());
-                                                    setSelectedSubject(subject.name);
-                                                  }}
-                                                >
-                                                  <Book className="h-4 w-4 mr-1" />
-                                                  View
-                                                </Button>
-                                              </TableCell>
-                                            </TableRow>
-                                          ))}
-                                        </TableBody>
-                                      </Table>
-                                    </div>
-                                  ) : (
-                                    <div className="bg-gray-50 p-6 rounded-md text-center">
-                                      <File className="mx-auto h-10 w-10 text-gray-400 mb-3" />
-                                      <h3 className="text-lg font-medium">No subjects available</h3>
-                                      <p className="text-gray-500 mt-1">
-                                        Subject data for this semester is not available yet.
-                                      </p>
-                                    </div>
-                                  )}
-                                </AccordionContent>
-                              </AccordionItem>
-                            );
-                          })}
-                        </Accordion>
                       </div>
                     )}
                   </CardContent>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, User, BookOpen } from 'lucide-react';
+import { Search, Menu, X, BookOpen } from 'lucide-react';
 
 interface NavbarProps {
   onSearch?: (term: string) => void;
@@ -95,6 +95,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               Resources
             </Link>
             <Link 
+              to="/universities" 
+              className={`text-sm font-medium transition-opacity ${
+                isActive('/universities') ? 'opacity-100' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
+              Universities
+            </Link>
+            <Link 
               to="/about" 
               className={`text-sm font-medium transition-opacity ${
                 isActive('/about') ? 'opacity-100' : 'opacity-90 hover:opacity-100'
@@ -126,23 +134,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               {isMobileMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
-
-          {/* User Actions */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link 
-              to="/login" 
-              className="flex items-center gap-2 py-2 px-4 rounded-full hover:bg-gray-100 transition-colors text-sm font-medium"
-            >
-              <span>Login</span>
-            </Link>
-            <Link 
-              to="/signup" 
-              className="flex items-center gap-2 py-2 px-4 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 text-sm font-medium"
-            >
-              <User className="h-4 w-4" />
-              <span>Sign Up</span>
-            </Link>
-          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -164,6 +155,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 }`}
               >
                 Resources
+              </Link>
+              <Link 
+                to="/universities" 
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/universities') ? 'text-blue-600' : 'hover:text-blue-600'
+                }`}
+              >
+                Universities
               </Link>
               <Link 
                 to="/about" 
@@ -189,21 +188,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   <Search className="h-5 w-5" />
                 </button>
               </form>
-              <div className="flex flex-col space-y-2 mt-2">
-                <Link 
-                  to="/login" 
-                  className="flex items-center gap-2 py-2 px-4 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium w-fit"
-                >
-                  <span>Login</span>
-                </Link>
-                <Link 
-                  to="/signup" 
-                  className="flex items-center gap-2 py-2 px-4 rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-blue-600 text-sm font-medium w-fit"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Sign Up</span>
-                </Link>
-              </div>
             </div>
           </div>
         )}
