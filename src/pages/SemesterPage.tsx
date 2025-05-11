@@ -2,10 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Filter, BookOpen, FileText, File } from 'lucide-react';
+import { ChevronLeft, Filter, BookOpen, FileText, File, Download } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import ResourceCard from '../components/ResourceCard';
 import Footer from '../components/Footer';
+import PDFViewer from '../components/PDFViewer';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data for subjects by semester
 const semesterSubjects = {
@@ -36,6 +40,47 @@ const semesterDescriptions = {
   '6': 'Sixth semester covers complex engineering concepts and introduces electives for specialization.',
   '7': 'Seventh semester focuses on industry-relevant topics and begins project work in specialized areas.',
   '8': 'Final semester is dedicated to completing major projects and specialized elective courses.',
+};
+
+// Mock PDF data for subjects
+const subjectPDFs = {
+  'Engineering Mathematics I': [
+    { id: 1, title: 'Chapter 1: Calculus Fundamentals', fileSize: '3.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 2, title: 'Chapter 2: Differential Equations', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 3, title: 'Practice Problems Set 1', fileSize: '1.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Physics': [
+    { id: 4, title: 'Physics Lecture Notes - Part 1', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 5, title: 'Physics Experiments Manual', fileSize: '2.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Chemistry': [
+    { id: 6, title: 'Complete Chemistry Notes', fileSize: '5.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Basic Electrical Engineering': [
+    { id: 7, title: 'Circuit Theory Introduction', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 8, title: 'AC/DC Fundamentals', fileSize: '2.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Graphics': [
+    { id: 9, title: 'Technical Drawing Handbook', fileSize: '6.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Mathematics II': [
+    { id: 10, title: 'Vector Calculus Notes', fileSize: '2.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 11, title: 'Linear Algebra Complete Guide', fileSize: '3.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Basic Electronics': [
+    { id: 12, title: 'Digital Electronics Fundamentals', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 13, title: 'Semiconductor Devices', fileSize: '3.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Programming and Data Structures': [
+    { id: 14, title: 'C Programming Language Guide', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 15, title: 'Data Structures Algorithms Notes', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Mechanics': [
+    { id: 16, title: 'Statics and Dynamics', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Environmental Studies': [
+    { id: 17, title: 'Environmental Impact Analysis', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
 };
 
 // Mock resources data
@@ -101,6 +146,9 @@ const SemesterPage = () => {
   const [activeSubject, setActiveSubject] = useState<string>('all');
   const [activeType, setActiveType] = useState<string>('all');
   const [resources, setResources] = useState(mockResources);
+  const [selectedPDF, setSelectedPDF] = useState<any>(null);
+  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const { toast } = useToast();
   
   const semester = semesterId || '1';
   const subjects = semesterSubjects[semester as keyof typeof semesterSubjects] || [];
@@ -122,6 +170,26 @@ const SemesterPage = () => {
     
     setResources(filtered);
   }, [activeSubject, activeType]);
+
+  const handlePDFView = (pdf: any) => {
+    setSelectedPDF(pdf);
+    setIsPDFViewerOpen(true);
+  };
+
+  const handlePDFDownload = (pdf: any) => {
+    // Create a temporary link to download the PDF
+    const link = document.createElement('a');
+    link.href = pdf.downloadUrl;
+    link.setAttribute('download', `${pdf.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      description: "PDF downloaded successfully!",
+      duration: 3000,
+    });
+  };
 
   return (
     <AnimatePresence>
@@ -303,10 +371,78 @@ const SemesterPage = () => {
                     </AnimatePresence>
                   </div>
                 </div>
+
+                {/* Subject PDFs Section */}
+                {activeSubject !== 'all' && subjectPDFs[activeSubject as keyof typeof subjectPDFs] && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                    <div className="mb-6">
+                      <h3 className="font-bold text-lg flex items-center gap-2 mb-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        {activeSubject} PDF Resources
+                      </h3>
+                      <p className="text-gray-500 text-sm">
+                        Download or view PDF resources for {activeSubject}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {subjectPDFs[activeSubject as keyof typeof subjectPDFs].map((pdf) => (
+                        <div 
+                          key={pdf.id} 
+                          className="flex items-center justify-between border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded text-blue-800">
+                              <FileText className="h-6 w-6" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">{pdf.title}</h4>
+                              <p className="text-sm text-gray-500">{pdf.fileSize}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex items-center gap-1"
+                              onClick={() => handlePDFView(pdf)}
+                            >
+                              <FileText className="h-4 w-4" />
+                              <span className="hidden sm:inline">View</span>
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="default" 
+                              className="flex items-center gap-1"
+                              onClick={() => handlePDFDownload(pdf)}
+                            >
+                              <Download className="h-4 w-4" />
+                              <span className="hidden sm:inline">Download</span>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </div>
           </div>
         </main>
+        
+        {/* PDF Viewer Dialog */}
+        {selectedPDF && (
+          <PDFViewer
+            title={selectedPDF.title}
+            pdfUrl={selectedPDF.downloadUrl}
+            fileSize={selectedPDF.fileSize}
+            isOpen={isPDFViewerOpen}
+            onClose={() => {
+              setIsPDFViewerOpen(false);
+              setSelectedPDF(null);
+            }}
+          />
+        )}
         
         <Footer />
       </motion.div>

@@ -6,6 +6,7 @@ import { BookOpen, Calendar, Clock, File, FileText, Map, Users, ExternalLink, Gr
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ResourceCard from '../components/ResourceCard';
+import PDFViewer from '../components/PDFViewer';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,31 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+// Mock PDF data for subjects
+const subjectPDFs = {
+  'Applied Mathematics I': [
+    { id: 1, title: 'Chapter 1: Calculus Fundamentals', fileSize: '3.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 2, title: 'Chapter 2: Differential Equations', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 3, title: 'Practice Problems Set 1', fileSize: '1.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Database Management Systems': [
+    { id: 4, title: 'SQL Complete Guide', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 5, title: 'Normalization Techniques', fileSize: '2.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Object Oriented Programming': [
+    { id: 6, title: 'Java Programming Notes', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 7, title: 'OOP Concepts and Examples', fileSize: '2.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Operating Systems': [
+    { id: 8, title: 'Process Management', fileSize: '4.0 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 9, title: 'Memory Management Techniques', fileSize: '3.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Computer Networks': [
+    { id: 10, title: 'Network Protocols Handbook', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  // Add more subjects and PDFs as needed
+};
+
 const UniversityPage = () => {
   const { universityId } = useParams<{ universityId: string }>();
   const [university, setUniversity] = useState<University | null>(null);
@@ -25,6 +51,8 @@ const UniversityPage = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedTab, setSelectedTab] = useState<string>('branches');
+  const [selectedPDF, setSelectedPDF] = useState<any>(null);
+  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,6 +107,27 @@ const UniversityPage = () => {
   // Extract unique subjects and semesters for filters
   const subjects = Array.from(new Set(resources.map(r => r.subject)));
   const semesters = Array.from(new Set(resources.map(r => r.semester))).sort((a, b) => a - b);
+
+  // Handle PDF view
+  const handlePDFView = (pdf: any) => {
+    setSelectedPDF(pdf);
+    setIsPDFViewerOpen(true);
+  };
+
+  // Handle PDF download
+  const handlePDFDownload = (pdf: any) => {
+    const link = document.createElement('a');
+    link.href = pdf.downloadUrl;
+    link.setAttribute('download', `${pdf.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      description: "PDF downloaded successfully!",
+      duration: 3000,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -242,6 +291,7 @@ const UniversityPage = () => {
                                         <TableBody>
                                           {subjects.map((subject: BranchSubject) => {
                                             const subjectResources = getResourcesForSubject(subject.name, semester);
+                                            const hasPDFs = subjectPDFs[subject.name as keyof typeof subjectPDFs]?.length > 0;
                                             
                                             return (
                                               <TableRow key={subject.id}>
@@ -252,19 +302,35 @@ const UniversityPage = () => {
                                                   {subject.description}
                                                 </TableCell>
                                                 <TableCell>
-                                                  <Button 
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    className="flex items-center"
-                                                    onClick={() => {
-                                                      setSelectedTab('resources');
-                                                      setSelectedSemester(semester.toString());
-                                                      setSelectedSubject(subject.name);
-                                                    }}
-                                                  >
-                                                    <Book className="h-4 w-4 mr-1" />
-                                                    View ({subjectResources.length})
-                                                  </Button>
+                                                  <div className="flex gap-2">
+                                                    <Button 
+                                                      variant="outline" 
+                                                      size="sm"
+                                                      className="flex items-center"
+                                                      onClick={() => {
+                                                        setSelectedTab('resources');
+                                                        setSelectedSemester(semester.toString());
+                                                        setSelectedSubject(subject.name);
+                                                      }}
+                                                    >
+                                                      <Book className="h-4 w-4 mr-1" />
+                                                      View
+                                                    </Button>
+                                                    {hasPDFs && (
+                                                      <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="flex items-center"
+                                                        onClick={() => {
+                                                          const firstPDF = subjectPDFs[subject.name as keyof typeof subjectPDFs][0];
+                                                          if (firstPDF) handlePDFView(firstPDF);
+                                                        }}
+                                                      >
+                                                        <FileText className="h-4 w-4 mr-1" />
+                                                        PDFs ({subjectPDFs[subject.name as keyof typeof subjectPDFs]?.length || 0})
+                                                      </Button>
+                                                    )}
+                                                  </div>
                                                 </TableCell>
                                               </TableRow>
                                             );
@@ -400,20 +466,61 @@ const UniversityPage = () => {
                     
                     {/* Resources Grid */}
                     {filteredResources.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredResources.map((resource, index) => (
-                          <ResourceCard
-                            key={resource.id}
-                            title={resource.title}
-                            type={resource.type}
-                            subject={resource.subject}
-                            date={resource.uploadDate}
-                            views={resource.views}
-                            fileSize={resource.fileSize}
-                            delay={index}
-                          />
-                        ))}
-                      </div>
+                      <>
+                        {/* Display PDF resources if a subject is selected */}
+                        {selectedSubject !== 'all' && subjectPDFs[selectedSubject as keyof typeof subjectPDFs] && (
+                          <div className="mb-8 bg-blue-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-bold mb-4 flex items-center">
+                              <FileText className="h-5 w-5 text-blue-700 mr-2" />
+                              PDF Resources for {selectedSubject}
+                            </h3>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              {subjectPDFs[selectedSubject as keyof typeof subjectPDFs]?.map((pdf) => (
+                                <div 
+                                  key={pdf.id}
+                                  className="bg-white p-4 rounded-md shadow-sm border border-blue-100 flex justify-between items-center"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="bg-blue-100 p-2 rounded-md">
+                                      <FileText className="h-5 w-5 text-blue-700" />
+                                    </div>
+                                    <div>
+                                      <h4 className="font-medium">{pdf.title}</h4>
+                                      <p className="text-sm text-gray-500">{pdf.fileSize}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" onClick={() => handlePDFView(pdf)}>
+                                      <FileText className="h-4 w-4 mr-1" />
+                                      View
+                                    </Button>
+                                    <Button size="sm" onClick={() => handlePDFDownload(pdf)}>
+                                      <Download className="h-4 w-4 mr-1" />
+                                      Download
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {filteredResources.map((resource, index) => (
+                            <ResourceCard
+                              key={resource.id}
+                              title={resource.title}
+                              type={resource.type}
+                              subject={resource.subject}
+                              date={resource.uploadDate}
+                              views={resource.views}
+                              fileSize={resource.fileSize}
+                              delay={index}
+                            />
+                          ))}
+                        </div>
+                      </>
                     ) : (
                       <div className="bg-gray-50 rounded-lg p-8 text-center">
                         <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -483,6 +590,20 @@ const UniversityPage = () => {
           </div>
         </section>
       </main>
+      
+      {/* PDF Viewer Dialog */}
+      {selectedPDF && (
+        <PDFViewer
+          title={selectedPDF.title}
+          pdfUrl={selectedPDF.downloadUrl}
+          fileSize={selectedPDF.fileSize}
+          isOpen={isPDFViewerOpen}
+          onClose={() => {
+            setIsPDFViewerOpen(false);
+            setSelectedPDF(null);
+          }}
+        />
+      )}
       
       <Footer />
     </motion.div>
