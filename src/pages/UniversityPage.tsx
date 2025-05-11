@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
@@ -40,6 +39,15 @@ const subjectPDFs = {
     { id: 10, title: 'Network Protocols Handbook', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
   ],
   // Add more subjects and PDFs as needed
+};
+
+// Add subject information data
+const subjectInformation = {
+  'Applied Mathematics I': 'This foundational course covers calculus, differential equations, matrices, and other mathematical concepts essential for engineering applications. Students learn analytical skills for solving complex engineering problems.',
+  'Database Management Systems': 'Covers relational database design, SQL, normalization, transaction management, and database administration. Students learn to design and implement efficient database solutions for various applications.',
+  'Object Oriented Programming': 'Introduces object-oriented design principles, inheritance, polymorphism, encapsulation, and exception handling. Students learn to develop modular, reusable software using object-oriented programming languages.',
+  'Operating Systems': 'Covers process management, memory management, file systems, I/O systems, and protection mechanisms. Students learn how operating systems function and manage computer resources efficiently.',
+  'Computer Networks': 'Explores network architectures, protocols, routing algorithms, network security, and application layer services. Students learn to design and implement computer networks for various communication needs.',
 };
 
 const UniversityPage = () => {
@@ -602,6 +610,7 @@ const UniversityPage = () => {
             setIsPDFViewerOpen(false);
             setSelectedPDF(null);
           }}
+          subjectInfo={subjectInformation[selectedSubject as keyof typeof subjectInformation]}
         />
       )}
       

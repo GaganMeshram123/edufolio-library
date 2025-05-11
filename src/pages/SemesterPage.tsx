@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -140,6 +139,20 @@ const mockResources = [
     fileSize: "2.9 MB",
   },
 ];
+
+// Add subject information data
+const subjectInformation = {
+  'Engineering Mathematics I': 'This foundational course covers calculus, differential equations, matrices, and other mathematical concepts essential for engineering applications. Students learn analytical skills for solving complex engineering problems.',
+  'Engineering Physics': 'Explores the fundamental principles of physics relevant to engineering, including mechanics, thermodynamics, optics, and modern physics concepts. Includes practical lab work to reinforce theoretical concepts.',
+  'Engineering Chemistry': 'Covers the basic principles of chemistry needed in engineering fields, including physical chemistry, electrochemistry, corrosion science, and engineering materials. Features laboratory experiments to demonstrate practical applications.',
+  'Basic Electrical Engineering': 'Introduces electrical circuit theory, network analysis, electromagnetic principles, and basic electrical measurement techniques. Students learn to analyze and design simple electrical circuits.',
+  'Engineering Graphics': 'Teaches technical drawing techniques, orthographic projections, isometric views, and computer-aided design fundamentals that enable engineers to communicate design concepts visually.',
+  'Engineering Mathematics II': 'Builds on Mathematics I with advanced topics including vector calculus, Fourier series, Laplace transforms, and probability theory. Focuses on mathematical tools used in engineering analysis.',
+  'Basic Electronics': 'Covers semiconductor devices, digital circuits, operational amplifiers, and electronic measurement systems. Includes practical design and testing of basic electronic circuits.',
+  'Programming and Data Structures': 'Introduces computer programming concepts, algorithms, data structures, and problem-solving techniques. Students learn to develop structured programs and implement efficient data management solutions.',
+  'Engineering Mechanics': 'Covers statics and dynamics principles, force systems, equilibrium conditions, kinematics, and kinetics. Students learn to analyze mechanical systems and solve engineering mechanics problems.',
+  'Environmental Studies': 'Examines environmental science fundamentals, ecosystem dynamics, pollution control, sustainability principles, and environmental policy. Emphasizes the engineer's role in environmental protection and sustainable development.',
+};
 
 const SemesterPage = () => {
   const { semesterId } = useParams();
@@ -441,6 +454,7 @@ const SemesterPage = () => {
               setIsPDFViewerOpen(false);
               setSelectedPDF(null);
             }}
+            subjectInfo={subjectInformation[activeSubject as keyof typeof subjectInformation]}
           />
         )}
         

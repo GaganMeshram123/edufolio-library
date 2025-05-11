@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FileText, Download, X, ExternalLink } from 'lucide-react';
+import { FileText, Download, X, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -11,9 +11,10 @@ interface PDFViewerProps {
   fileSize: string;
   isOpen: boolean;
   onClose: () => void;
+  subjectInfo?: string;  // New prop for subject information
 }
 
-const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose }: PDFViewerProps) => {
+const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose, subjectInfo }: PDFViewerProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,6 +47,19 @@ const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose }: PDFViewerProps)
             <span>File size: {fileSize}</span>
           </DialogDescription>
         </DialogHeader>
+        
+        {/* Subject information section */}
+        {subjectInfo && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-blue-900 mb-1">About this subject</h4>
+                <p className="text-sm text-blue-700">{subjectInfo}</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="flex-1 min-h-[400px] border rounded-md overflow-hidden bg-gray-50 relative">
           {isLoading && (
