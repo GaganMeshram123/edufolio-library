@@ -16,38 +16,196 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-// Mock PDF data for subjects
+// Comprehensive PDF data for all subjects across different branches
 const subjectPDFs = {
-  'Applied Mathematics I': [
-    { id: 1, title: 'Chapter 1: Calculus Fundamentals', fileSize: '3.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 2, title: 'Chapter 2: Differential Equations', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 3, title: 'Practice Problems Set 1', fileSize: '1.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  // Engineering Mathematics
+  'Engineering Mathematics I': [
+    { id: 1, title: 'Calculus and Differential Equations', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 2, title: 'Matrices and Linear Algebra', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 3, title: 'Practice Problems and Solutions', fileSize: '2.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Mathematics II': [
+    { id: 4, title: 'Vector Calculus Complete Notes', fileSize: '3.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 5, title: 'Fourier Series and Transforms', fileSize: '3.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Mathematics III': [
+    { id: 6, title: 'Laplace Transforms', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 7, title: 'Complex Variables and Z-Transform', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Mathematics IV': [
+    { id: 8, title: 'Numerical Methods', fileSize: '3.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 9, title: 'Probability and Statistics', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Computer Science subjects
+  'Data Structures and Algorithms': [
+    { id: 10, title: 'Complete DSA Notes', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 11, title: 'Algorithm Analysis and Design', fileSize: '4.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 12, title: 'Coding Practice Problems', fileSize: '3.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
   ],
   'Database Management Systems': [
-    { id: 4, title: 'SQL Complete Guide', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 5, title: 'Normalization Techniques', fileSize: '2.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Object Oriented Programming': [
-    { id: 6, title: 'Java Programming Notes', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 7, title: 'OOP Concepts and Examples', fileSize: '2.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Operating Systems': [
-    { id: 8, title: 'Process Management', fileSize: '4.0 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 9, title: 'Memory Management Techniques', fileSize: '3.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 13, title: 'SQL Complete Reference', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 14, title: 'Database Design and Normalization', fileSize: '3.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 15, title: 'Transaction Management', fileSize: '2.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
   ],
   'Computer Networks': [
-    { id: 10, title: 'Network Protocols Handbook', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 16, title: 'Network Protocols Handbook', fileSize: '5.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 17, title: 'OSI Model and TCP/IP', fileSize: '3.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
   ],
-  // Add more subjects and PDFs as needed
+  'Operating Systems': [
+    { id: 18, title: 'Process and Thread Management', fileSize: '4.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 19, title: 'Memory Management Techniques', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Software Engineering': [
+    { id: 20, title: 'SDLC Models and Methodologies', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 21, title: 'Requirements Engineering', fileSize: '3.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Artificial Intelligence': [
+    { id: 22, title: 'Machine Learning Fundamentals', fileSize: '6.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 23, title: 'Expert Systems and Knowledge Representation', fileSize: '4.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Web Technology': [
+    { id: 24, title: 'HTML, CSS, JavaScript Guide', fileSize: '5.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 25, title: 'PHP and MySQL Development', fileSize: '4.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Mechanical Engineering subjects
+  'Engineering Mechanics': [
+    { id: 26, title: 'Statics and Dynamics', fileSize: '5.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 27, title: 'Force Analysis and Equilibrium', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Thermodynamics': [
+    { id: 28, title: 'Laws of Thermodynamics', fileSize: '4.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 29, title: 'Heat Transfer Mechanisms', fileSize: '3.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Fluid Mechanics': [
+    { id: 30, title: 'Fluid Properties and Statics', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 31, title: 'Flow Dynamics and Bernoulli Equation', fileSize: '3.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Machine Design': [
+    { id: 32, title: 'Design of Machine Elements', fileSize: '5.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 33, title: 'Stress Analysis and Failure Theories', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Manufacturing Processes': [
+    { id: 34, title: 'Machining and Forming Processes', fileSize: '5.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 35, title: 'Welding and Joining Techniques', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Electrical Engineering subjects
+  'Circuit Analysis': [
+    { id: 36, title: 'DC and AC Circuit Analysis', fileSize: '4.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 37, title: 'Network Theorems and Applications', fileSize: '3.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Control Systems': [
+    { id: 38, title: 'Control Theory Fundamentals', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 39, title: 'PID Controllers and Compensation', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Power Systems': [
+    { id: 40, title: 'Power Generation and Transmission', fileSize: '6.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 41, title: 'Load Flow and Fault Analysis', fileSize: '4.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Digital Electronics': [
+    { id: 42, title: 'Digital Logic Design', fileSize: '4.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 43, title: 'Microprocessors and Microcontrollers', fileSize: '5.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Civil Engineering subjects
+  'Structural Analysis': [
+    { id: 44, title: 'Analysis of Statically Determinate Structures', fileSize: '5.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 45, title: 'Moment Distribution Method', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Concrete Technology': [
+    { id: 46, title: 'Properties of Concrete', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 47, title: 'Mix Design and Quality Control', fileSize: '3.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Geotechnical Engineering': [
+    { id: 48, title: 'Soil Mechanics Fundamentals', fileSize: '5.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 49, title: 'Foundation Engineering', fileSize: '4.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Transportation Engineering': [
+    { id: 50, title: 'Highway Engineering', fileSize: '5.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 51, title: 'Traffic Engineering and Planning', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Chemistry subjects
+  'Organic Chemistry': [
+    { id: 52, title: 'Reaction Mechanisms and Synthesis', fileSize: '6.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 53, title: 'Spectroscopy and Structure Determination', fileSize: '4.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Physical Chemistry': [
+    { id: 54, title: 'Chemical Thermodynamics', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 55, title: 'Quantum Chemistry and Kinetics', fileSize: '5.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Analytical Chemistry': [
+    { id: 56, title: 'Instrumental Methods of Analysis', fileSize: '5.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 57, title: 'Chromatography and Separation Techniques', fileSize: '4.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Basic Sciences
+  'Engineering Physics': [
+    { id: 58, title: 'Quantum Mechanics and Modern Physics', fileSize: '5.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 59, title: 'Optics and Wave Theory', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Chemistry': [
+    { id: 60, title: 'Electrochemistry and Corrosion', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 61, title: 'Polymers and Engineering Materials', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+
+  // Common subjects
+  'Environmental Studies': [
+    { id: 62, title: 'Environmental Impact Assessment', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 63, title: 'Sustainable Development', fileSize: '3.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Engineering Graphics': [
+    { id: 64, title: 'Technical Drawing Standards', fileSize: '6.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 65, title: 'CAD and 3D Modeling', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
+  'Workshop Technology': [
+    { id: 66, title: 'Basic Manufacturing Processes', fileSize: '4.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+    { id: 67, title: 'Safety in Workshop', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  ],
 };
 
-// Add subject information data
+// Comprehensive subject information
 const subjectInformation = {
-  'Applied Mathematics I': 'This foundational course covers calculus, differential equations, matrices, and other mathematical concepts essential for engineering applications. Students learn analytical skills for solving complex engineering problems.',
-  'Database Management Systems': 'Covers relational database design, SQL, normalization, transaction management, and database administration. Students learn to design and implement efficient database solutions for various applications.',
-  'Object Oriented Programming': 'Introduces object-oriented design principles, inheritance, polymorphism, encapsulation, and exception handling. Students learn to develop modular, reusable software using object-oriented programming languages.',
-  'Operating Systems': 'Covers process management, memory management, file systems, I/O systems, and protection mechanisms. Students learn how operating systems function and manage computer resources efficiently.',
-  'Computer Networks': 'Explores network architectures, protocols, routing algorithms, network security, and application layer services. Students learn to design and implement computer networks for various communication needs.',
+  'Engineering Mathematics I': 'Fundamental mathematical concepts including calculus, differential equations, matrices, and determinants essential for engineering applications.',
+  'Engineering Mathematics II': 'Advanced topics in vector calculus, Fourier series, and partial differential equations used in engineering analysis.',
+  'Engineering Mathematics III': 'Complex variables, Laplace transforms, and Z-transforms for signal processing and control systems.',
+  'Engineering Mathematics IV': 'Numerical methods, probability, statistics, and optimization techniques for engineering problem solving.',
+  
+  'Data Structures and Algorithms': 'Fundamental data structures, algorithm design, complexity analysis, and problem-solving techniques for efficient programming.',
+  'Database Management Systems': 'Database design, SQL, normalization, transaction management, and database administration concepts.',
+  'Computer Networks': 'Network architectures, protocols, routing, network security, and distributed systems fundamentals.',
+  'Operating Systems': 'Process management, memory management, file systems, synchronization, and system security concepts.',
+  'Software Engineering': 'Software development lifecycle, requirements engineering, design patterns, testing, and project management.',
+  'Artificial Intelligence': 'Machine learning, expert systems, knowledge representation, search algorithms, and AI applications.',
+  'Web Technology': 'HTML, CSS, JavaScript, server-side programming, databases, and modern web development frameworks.',
+  
+  'Engineering Mechanics': 'Statics and dynamics, force analysis, equilibrium conditions, kinematics, and kinetics of mechanical systems.',
+  'Thermodynamics': 'Laws of thermodynamics, heat transfer, power cycles, and energy conversion in mechanical systems.',
+  'Fluid Mechanics': 'Fluid properties, fluid statics, flow dynamics, and applications in hydraulic and pneumatic systems.',
+  'Machine Design': 'Design of machine elements, stress analysis, failure theories, and mechanical component selection.',
+  'Manufacturing Processes': 'Machining, forming, joining, and modern manufacturing techniques for mechanical components.',
+  
+  'Circuit Analysis': 'DC and AC circuit analysis, network theorems, and fundamental electrical circuit principles.',
+  'Control Systems': 'Control theory, feedback systems, stability analysis, and controller design for engineering systems.',
+  'Power Systems': 'Power generation, transmission, distribution, and protection systems in electrical engineering.',
+  'Digital Electronics': 'Digital logic design, microprocessors, microcontrollers, and embedded system fundamentals.',
+  
+  'Structural Analysis': 'Analysis of beams, frames, trusses, and other structural elements under various loading conditions.',
+  'Concrete Technology': 'Properties of concrete, mix design, testing, and quality control in civil engineering construction.',
+  'Geotechnical Engineering': 'Soil mechanics, foundation engineering, slope stability, and earth structure design.',
+  'Transportation Engineering': 'Highway design, traffic engineering, transportation planning, and infrastructure development.',
+  
+  'Organic Chemistry': 'Structure, properties, reactions, and synthesis of organic compounds with engineering applications.',
+  'Physical Chemistry': 'Chemical thermodynamics, kinetics, quantum chemistry, and physical properties of materials.',
+  'Analytical Chemistry': 'Instrumental analysis, separation techniques, and quantitative chemical analysis methods.',
+  
+  'Engineering Physics': 'Quantum mechanics, optics, solid state physics, and modern physics concepts for engineers.',
+  'Engineering Chemistry': 'Chemical principles, materials science, electrochemistry, and corrosion relevant to engineering.',
+  'Environmental Studies': 'Environmental science, pollution control, sustainability, and environmental impact assessment.',
+  'Engineering Graphics': 'Technical drawing, computer-aided design, and visualization techniques for engineering design.',
+  'Workshop Technology': 'Basic manufacturing processes, machine tools, safety practices, and hands-on engineering skills.'
 };
 
 const UniversityPage = () => {

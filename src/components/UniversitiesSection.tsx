@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { University } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Map, Users } from 'lucide-react';
+import { BookOpen, Map } from 'lucide-react';
 
 interface UniversitySectionProps {
   universities: University[];
