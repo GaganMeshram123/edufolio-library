@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, BookOpen } from 'lucide-react';
+import { Search, Menu, X, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Button } from './ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavbarProps {
   onSearch?: (term: string) => void;
@@ -12,6 +14,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+  
+  const isAdmin = user?.email === 'admin@college.com';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,6 +115,34 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             >
               About
             </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                {isAdmin && (
+                  <Link 
+                    to="/admin" 
+                    className="flex items-center gap-1 text-sm font-medium transition-opacity opacity-90 hover:opacity-100"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Admin
+                  </Link>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={logout}
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Link to="/login">
+                <Button variant="default" size="sm">
+                  Login
+                </Button>
+              </Link>
+            )}
             <form onSubmit={handleSearchSubmit} className="relative">
               <input
                 type="text"

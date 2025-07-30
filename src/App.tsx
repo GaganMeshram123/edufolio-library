@@ -12,6 +12,8 @@ import ResourcesPage from "./pages/ResourcesPage";
 import AboutPage from "./pages/AboutPage";
 import UniversityPage from "./pages/UniversityPage";
 import UniversitiesListPage from "./pages/UniversitiesListPage";
+import AdminPage from "./pages/AdminPage";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => (
             <Route path="/universities" element={<UniversitiesListPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
