@@ -8,10 +8,10 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  isAuthenticated: boolean;
+  isAdminAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,9 +42,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const adminLogin = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      // Check if email is admin email
+      if (email !== 'admin@college.com') {
+        throw new Error('Unauthorized: Admin access only');
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -53,50 +58,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (error) throw error;
 
       toast({
-        title: "Login successful",
-        description: `Welcome back!`,
+        title: "Admin login successful",
+        description: `Welcome back, Admin!`,
       });
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Admin login error:", error);
       toast({
         variant: "destructive",
-        title: "Login failed",
-        description: error.message || "Invalid email or password. Please try again.",
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signup = async (name: string, email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name: name,
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully!",
-      });
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      toast({
-        variant: "destructive",
-        title: "Signup failed",
-        description: error.message || "There was a problem creating your account. Please try again.",
+        title: "Admin login failed",
+        description: error.message || "Invalid admin credentials. Please try again.",
       });
       throw error;
     } finally {
@@ -126,14 +96,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const isAdmin = user?.email === 'admin@college.com';
+
   const value = {
     user,
     session,
     isLoading,
-    login,
-    signup,
+    adminLogin,
     logout,
-    isAuthenticated: !!user,
+    isAdminAuthenticated: !!user && isAdmin,
+    isAdmin,
   };
 
   return (

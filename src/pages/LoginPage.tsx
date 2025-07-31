@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { BookOpen, Mail } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { BookOpen, Mail, Shield } from 'lucide-react';
 
 import {
   Form,
@@ -31,7 +32,14 @@ type FormValues = z.infer<typeof formSchema>;
 const LoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { adminLogin, isAdminAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      navigate('/admin');
+    }
+  }, [isAdminAuthenticated, navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -45,25 +53,10 @@ const LoginPage = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      // This would be replaced with actual API call
-      console.log('Login attempt:', values);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Logged in successfully!",
-        description: "Welcome back to CollegeSpace.",
-      });
-      
-      navigate('/');
+      await adminLogin(values.email, values.password);
+      navigate('/admin');
     } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: "Invalid email or password. Please try again.",
-      });
+      // Error handling is done in the adminLogin function
     } finally {
       setIsLoading(false);
     }
@@ -89,9 +82,12 @@ const LoginPage = () => {
                 <BookOpen className="h-7 w-7" />
                 <span>CollegeSpace</span>
               </Link>
-              <h1 className="text-2xl font-bold mt-6">Welcome Back</h1>
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <Shield className="h-6 w-6 text-blue-600" />
+                <h1 className="text-2xl font-bold">Admin Login</h1>
+              </div>
               <p className="text-gray-500 mt-2">
-                Log in to access your study materials
+                Restricted access for administrators only
               </p>
             </div>
 
@@ -124,12 +120,7 @@ const LoginPage = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Password</FormLabel>
-                        <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                          Forgot password?
-                        </Link>
-                      </div>
+                      <FormLabel>Admin Password</FormLabel>
                       <FormControl>
                         <Input 
                           type="password" 
@@ -163,16 +154,15 @@ const LoginPage = () => {
                 />
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Log In"}
+                  {isLoading ? "Signing in..." : "Admin Sign In"}
                 </Button>
               </form>
             </Form>
 
             <div className="mt-8 text-center text-sm">
               <p className="text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-blue-600 hover:underline font-medium">
-                  Sign up
+                <Link to="/" className="text-blue-600 hover:underline font-medium">
+                  ← Back to CollegeSpace
                 </Link>
               </p>
             </div>

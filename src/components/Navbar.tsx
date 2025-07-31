@@ -14,9 +14,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
-  
-  const isAdmin = user?.email === 'admin@college.com';
+  const { isAdminAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,17 +113,15 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             >
               About
             </Link>
-            {isAuthenticated ? (
+            {isAdminAuthenticated ? (
               <div className="flex items-center gap-4">
-                {isAdmin && (
-                  <Link 
-                    to="/admin" 
-                    className="flex items-center gap-1 text-sm font-medium transition-opacity opacity-90 hover:opacity-100"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Admin
-                  </Link>
-                )}
+                <Link 
+                  to="/admin" 
+                  className="flex items-center gap-1 text-sm font-medium transition-opacity opacity-90 hover:opacity-100"
+                >
+                  <Settings className="h-4 w-4" />
+                  Admin Panel
+                </Link>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -138,8 +134,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               </div>
             ) : (
               <Link to="/login">
-                <Button variant="default" size="sm">
-                  Login
+                <Button variant="outline" size="sm">
+                  Admin Login
                 </Button>
               </Link>
             )}

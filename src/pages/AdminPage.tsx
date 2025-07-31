@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Upload, University, BookOpen, FileText, Image, Users } from 'lucide-react';
 
 const AdminPage = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { isAdminAuthenticated } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -54,10 +54,7 @@ const AdminPage = () => {
   // File upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
-  // Check if user is admin (you can implement role-based auth)
-  const isAdmin = user?.email === 'admin@college.com'; // Replace with proper role check
-
-  if (!isAuthenticated || !isAdmin) {
+  if (!isAdminAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
