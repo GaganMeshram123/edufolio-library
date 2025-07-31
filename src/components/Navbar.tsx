@@ -113,7 +113,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             >
               About
             </Link>
-            {isAdminAuthenticated ? (
+            {isAdminAuthenticated && (
               <div className="flex items-center gap-4">
                 <Link 
                   to="/admin" 
@@ -132,12 +132,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                   Logout
                 </Button>
               </div>
-            ) : (
-              <Link to="/login">
-                <Button variant="outline" size="sm">
-                  Admin Login
-                </Button>
-              </Link>
             )}
             <form onSubmit={handleSearchSubmit} className="relative">
               <input

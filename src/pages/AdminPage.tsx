@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +10,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload, University, BookOpen, FileText, Image, Users } from 'lucide-react';
+import { Upload, University, BookOpen, FileText, Image, Users, Trash2, Download } from 'lucide-react';
 
 const AdminPage = () => {
   const { isAdminAuthenticated } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [selectedSemester, setSelectedSemester] = useState(1);
+  const [resources, setResources] = useState([]);
+  const [universities, setUniversities] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [subjects, setSubjects] = useState([]);
 
   // University form state
   const [universityForm, setUniversityForm] = useState({
@@ -58,19 +63,60 @@ const AdminPage = () => {
     return <Navigate to="/login" replace />;
   }
 
+  useEffect(() => {
+    fetchData();
+  }, [selectedSemester]);
+
+  const fetchData = async () => {
+    try {
+      // Fetch universities
+      const { data: universitiesData } = await supabase
+        .from('universities')
+        .select('*');
+      setUniversities(universitiesData || []);
+
+      // Fetch branches
+      const { data: branchesData } = await supabase
+        .from('branches')
+        .select('*');
+      setBranches(branchesData || []);
+
+      // Fetch subjects for selected semester
+      const { data: subjectsData } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('semester', selectedSemester);
+      setSubjects(subjectsData || []);
+
+      // Fetch resources for selected semester subjects
+      if (subjectsData && subjectsData.length > 0) {
+        const subjectIds = subjectsData.map(s => s.id);
+        const { data: resourcesData } = await supabase
+          .from('resources')
+          .select('*, subjects(name, semester)')
+          .in('subject_id', subjectIds);
+        setResources(resourcesData || []);
+      } else {
+        setResources([]);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   const handleFileUpload = async (file: File, bucket: string) => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError } = await (supabase as any).storage
+      const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data } = (supabase as any).storage
+      const { data } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
@@ -78,6 +124,46 @@ const AdminPage = () => {
     } catch (error) {
       console.error('Upload error:', error);
       throw error;
+    }
+  };
+
+  const handleDeleteResource = async (resourceId: string, fileUrl: string) => {
+    try {
+      setLoading(true);
+      
+      // Delete from database
+      const { error } = await supabase
+        .from('resources')
+        .delete()
+        .eq('id', resourceId);
+
+      if (error) throw error;
+
+      // Try to delete file from storage
+      if (fileUrl) {
+        const fileName = fileUrl.split('/').pop();
+        if (fileName) {
+          const bucket = fileUrl.includes('pdfs') ? 'pdfs' : 'university-images';
+          await supabase.storage
+            .from(bucket)
+            .remove([fileName]);
+        }
+      }
+
+      toast({
+        title: "Success",
+        description: "Resource deleted successfully",
+      });
+
+      fetchData();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete resource",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,7 +178,7 @@ const AdminPage = () => {
         imageUrl = await handleFileUpload(uploadFile, 'university-images');
       }
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('universities')
         .insert([{ ...universityForm, image_url: imageUrl }]);
 
@@ -105,6 +191,7 @@ const AdminPage = () => {
 
       setUniversityForm({ name: '', description: '', location: '', website: '', image_url: '' });
       setUploadFile(null);
+      fetchData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -121,7 +208,7 @@ const AdminPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('branches')
         .insert([branchForm]);
 
@@ -133,6 +220,7 @@ const AdminPage = () => {
       });
 
       setBranchForm({ name: '', description: '', university_id: '' });
+      fetchData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -149,7 +237,7 @@ const AdminPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('subjects')
         .insert([subjectForm]);
 
@@ -161,6 +249,7 @@ const AdminPage = () => {
       });
 
       setSubjectForm({ name: '', description: '', branch_id: '', semester: 1, credits: 3 });
+      fetchData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -180,11 +269,11 @@ const AdminPage = () => {
       let fileUrl = resourceForm.file_url;
 
       if (uploadFile) {
-        const bucket = resourceForm.type === 'pdf' ? 'pdfs' : 'images';
+        const bucket = resourceForm.type === 'pdf' ? 'pdfs' : 'university-images';
         fileUrl = await handleFileUpload(uploadFile, bucket);
       }
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('resources')
         .insert([{ ...resourceForm, file_url: fileUrl }]);
 
@@ -197,6 +286,7 @@ const AdminPage = () => {
 
       setResourceForm({ title: '', description: '', subject_id: '', type: 'pdf', file_url: '' });
       setUploadFile(null);
+      fetchData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -215,6 +305,82 @@ const AdminPage = () => {
           <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">Manage universities, branches, subjects, and resources</p>
         </div>
+
+        {/* Semester Dashboard */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Semester Dashboard
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {[1,2,3,4,5,6,7,8].map(sem => (
+                <Button
+                  key={sem}
+                  variant={selectedSemester === sem ? "default" : "outline"}
+                  onClick={() => setSelectedSemester(sem)}
+                  className="min-w-[100px]"
+                >
+                  Semester {sem}
+                </Button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-primary/5 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Subjects</h3>
+                <p className="text-2xl font-bold text-primary">{subjects.length}</p>
+              </div>
+              <div className="bg-secondary/5 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Resources</h3>
+                <p className="text-2xl font-bold text-secondary-foreground">{resources.length}</p>
+              </div>
+              <div className="bg-accent/5 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">Universities</h3>
+                <p className="text-2xl font-bold text-accent-foreground">{universities.length}</p>
+              </div>
+            </div>
+
+            {/* Resources for Selected Semester */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4">Resources for Semester {selectedSemester}</h3>
+              <div className="grid gap-4">
+                {resources.map((resource: any) => (
+                  <div key={resource.id} className="border rounded-lg p-4 flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{resource.title}</h4>
+                      <p className="text-sm text-muted-foreground">{resource.description}</p>
+                      <p className="text-xs text-muted-foreground">Type: {resource.type}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      {resource.file_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(resource.file_url, '_blank')}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteResource(resource.id, resource.file_url)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {resources.length === 0 && (
+                  <p className="text-muted-foreground text-center py-8">No resources found for Semester {selectedSemester}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="universities" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -312,13 +478,19 @@ const AdminPage = () => {
                 <form onSubmit={handleBranchSubmit} className="space-y-4">
                   <div>
                     <Label htmlFor="branch-university">University</Label>
-                    <Input
-                      id="branch-university"
-                      placeholder="University ID"
+                    <Select
                       value={branchForm.university_id}
-                      onChange={(e) => setBranchForm({ ...branchForm, university_id: e.target.value })}
-                      required
-                    />
+                      onValueChange={(value) => setBranchForm({ ...branchForm, university_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select University" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {universities.map((uni: any) => (
+                          <SelectItem key={uni.id} value={uni.id}>{uni.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="branch-name">Branch Name</Label>
@@ -357,14 +529,20 @@ const AdminPage = () => {
                 <form onSubmit={handleSubjectSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="subject-branch">Branch ID</Label>
-                      <Input
-                        id="subject-branch"
-                        placeholder="Branch ID"
+                      <Label htmlFor="subject-branch">Branch</Label>
+                      <Select
                         value={subjectForm.branch_id}
-                        onChange={(e) => setSubjectForm({ ...subjectForm, branch_id: e.target.value })}
-                        required
-                      />
+                        onValueChange={(value) => setSubjectForm({ ...subjectForm, branch_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((branch: any) => (
+                            <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="subject-name">Subject Name</Label>
@@ -432,14 +610,20 @@ const AdminPage = () => {
                 <form onSubmit={handleResourceSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="resource-subject">Subject ID</Label>
-                      <Input
-                        id="resource-subject"
-                        placeholder="Subject ID"
+                      <Label htmlFor="resource-subject">Subject</Label>
+                      <Select
                         value={resourceForm.subject_id}
-                        onChange={(e) => setResourceForm({ ...resourceForm, subject_id: e.target.value })}
-                        required
-                      />
+                        onValueChange={(value) => setResourceForm({ ...resourceForm, subject_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subjects.map((subject: any) => (
+                            <SelectItem key={subject.id} value={subject.id}>{subject.name} (Sem {subject.semester})</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="resource-title">Resource Title</Label>
@@ -481,6 +665,7 @@ const AdminPage = () => {
                     <Input
                       id="resource-file"
                       type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                     />
                   </div>
