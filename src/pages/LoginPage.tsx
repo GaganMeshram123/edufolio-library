@@ -54,7 +54,10 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       await adminLogin(values.email, values.password);
-      navigate('/admin');
+      // Small delay to ensure state is updated before navigation
+      setTimeout(() => {
+        navigate('/admin');
+      }, 100);
     } catch (error) {
       // Error handling is done in the adminLogin function
     } finally {

@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  adminLogin: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   isAdminAuthenticated: boolean;
   isAdmin: boolean;
@@ -68,10 +68,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Update admin last login
       await (supabase as any).rpc('update_admin_last_login', { admin_email: email });
 
+      // Force state update to ensure immediate authentication
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+      }
+
       toast({
         title: "Admin login successful",
         description: `Welcome back, ${adminData[0].full_name || 'Admin'}!`,
       });
+
+      return { success: true, adminData: adminData[0] };
     } catch (error: any) {
       console.error("Admin login error:", error);
       toast({
