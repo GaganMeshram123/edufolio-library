@@ -70,19 +70,19 @@ const AdminPage = () => {
   const fetchData = async () => {
     try {
       // Fetch universities
-      const { data: universitiesData } = await supabase
+      const { data: universitiesData } = await (supabase as any)
         .from('universities')
         .select('*');
       setUniversities(universitiesData || []);
 
       // Fetch branches
-      const { data: branchesData } = await supabase
+      const { data: branchesData } = await (supabase as any)
         .from('branches')
         .select('*');
       setBranches(branchesData || []);
 
       // Fetch subjects for selected semester
-      const { data: subjectsData } = await supabase
+      const { data: subjectsData } = await (supabase as any)
         .from('subjects')
         .select('*')
         .eq('semester', selectedSemester);
@@ -90,8 +90,8 @@ const AdminPage = () => {
 
       // Fetch resources for selected semester subjects
       if (subjectsData && subjectsData.length > 0) {
-        const subjectIds = subjectsData.map(s => s.id);
-        const { data: resourcesData } = await supabase
+        const subjectIds = subjectsData.map((s: any) => s.id);
+        const { data: resourcesData } = await (supabase as any)
           .from('resources')
           .select('*, subjects(name, semester)')
           .in('subject_id', subjectIds);
@@ -110,13 +110,13 @@ const AdminPage = () => {
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await (supabase as any).storage
         .from(bucket)
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
+      const { data } = (supabase as any).storage
         .from(bucket)
         .getPublicUrl(filePath);
 
@@ -132,7 +132,7 @@ const AdminPage = () => {
       setLoading(true);
       
       // Delete from database
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('resources')
         .delete()
         .eq('id', resourceId);
@@ -144,7 +144,7 @@ const AdminPage = () => {
         const fileName = fileUrl.split('/').pop();
         if (fileName) {
           const bucket = fileUrl.includes('pdfs') ? 'pdfs' : 'university-images';
-          await supabase.storage
+          await (supabase as any).storage
             .from(bucket)
             .remove([fileName]);
         }
@@ -178,7 +178,7 @@ const AdminPage = () => {
         imageUrl = await handleFileUpload(uploadFile, 'university-images');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('universities')
         .insert([{ ...universityForm, image_url: imageUrl }]);
 
@@ -208,7 +208,7 @@ const AdminPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('branches')
         .insert([branchForm]);
 
@@ -237,7 +237,7 @@ const AdminPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('subjects')
         .insert([subjectForm]);
 
@@ -273,7 +273,7 @@ const AdminPage = () => {
         fileUrl = await handleFileUpload(uploadFile, bucket);
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('resources')
         .insert([{ ...resourceForm, file_url: fileUrl }]);
 
