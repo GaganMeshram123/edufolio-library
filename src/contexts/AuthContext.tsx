@@ -20,6 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -68,6 +69,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Update admin last login
       await (supabase as any).rpc('update_admin_last_login', { admin_email: email });
 
+      // Set admin authentication state
+      setIsAdminLoggedIn(true);
+      
       // Force state update to ensure immediate authentication
       if (data?.session) {
         setSession(data.session);
@@ -99,6 +103,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
+      // Reset admin state
+      setIsAdminLoggedIn(false);
+      
       toast({
         title: "Logged out",
         description: "You have been logged out successfully.",
@@ -115,7 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const isAdmin = user?.email === 'admin@college.com' || user?.email?.endsWith('@college.com');
+  const isAdmin = user?.email === 'admin@college.com' || user?.email?.endsWith('@college.com') || isAdminLoggedIn;
 
   const value = {
     user,
@@ -123,8 +130,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isLoading,
     adminLogin,
     logout,
-    isAdminAuthenticated: !!user && isAdmin,
-    isAdmin,
+    isAdminAuthenticated: isAdminLoggedIn || (!!user && isAdmin),
+    isAdmin: isAdmin || isAdminLoggedIn,
   };
 
   return (
