@@ -237,18 +237,44 @@ const AdminPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await (supabase as any)
+      // First, insert the subject
+      const { data: subjectData, error: subjectError } = await (supabase as any)
         .from('subjects')
-        .insert([subjectForm]);
+        .insert([subjectForm])
+        .select();
 
-      if (error) throw error;
+      if (subjectError) throw subjectError;
+
+      // If there's a file and we have the subject data, create a resource
+      if (uploadFile && subjectData && subjectData.length > 0) {
+        try {
+          const bucket = uploadFile.type.includes('pdf') ? 'pdfs' : 'university-images';
+          const fileUrl = await handleFileUpload(uploadFile, bucket);
+          
+          const resourceData = {
+            title: `${subjectForm.name} Course Material`,
+            description: `Course material for ${subjectForm.name}`,
+            subject_id: subjectData[0].id,
+            type: uploadFile.type.includes('pdf') ? 'pdf' : 'document',
+            file_url: fileUrl
+          };
+
+          await (supabase as any)
+            .from('resources')
+            .insert([resourceData]);
+        } catch (fileError) {
+          console.error('File upload failed:', fileError);
+          // Continue anyway since subject was created
+        }
+      }
 
       toast({
         title: "Success",
-        description: "Subject added successfully",
+        description: "Subject added successfully" + (uploadFile ? " with course material" : ""),
       });
 
       setSubjectForm({ name: '', description: '', branch_id: '', semester: 1, credits: 3 });
+      setUploadFile(null);
       fetchData();
     } catch (error) {
       toast({
@@ -485,9 +511,9 @@ const AdminPage = () => {
                       <SelectTrigger>
                         <SelectValue placeholder="Select University" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border border-border">
                         {universities.map((uni: any) => (
-                          <SelectItem key={uni.id} value={uni.id}>{uni.name}</SelectItem>
+                          <SelectItem key={uni.id} value={uni.id} className="cursor-pointer hover:bg-accent">{uni.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -537,9 +563,11 @@ const AdminPage = () => {
                         <SelectTrigger>
                           <SelectValue placeholder="Select Branch" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border border-border max-h-60 overflow-y-auto">
                           {branches.map((branch: any) => (
-                            <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                            <SelectItem key={branch.id} value={branch.id} className="cursor-pointer hover:bg-accent">
+                              {branch.name}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -564,7 +592,7 @@ const AdminPage = () => {
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border border-border">
                           {[1,2,3,4,5,6,7,8].map(sem => (
                             <SelectItem key={sem} value={sem.toString()}>Semester {sem}</SelectItem>
                           ))}
@@ -590,7 +618,21 @@ const AdminPage = () => {
                       onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
                     />
                   </div>
-                  <Button type="submit" disabled={loading}>
+                  <div>
+                    <Label htmlFor="subject-file">Upload Course Material (PDF, Images, etc.)</Label>
+                    <Input
+                      id="subject-file"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif"
+                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                    />
+                    {uploadFile && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Selected: {uploadFile.name}
+                      </p>
+                    )}
+                  </div>
+                  <Button type="submit" disabled={loading || !subjectForm.branch_id || !subjectForm.name}>
                     {loading ? 'Adding...' : 'Add Subject'}
                   </Button>
                 </form>
@@ -618,9 +660,9 @@ const AdminPage = () => {
                         <SelectTrigger>
                           <SelectValue placeholder="Select Subject" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-background border border-border max-h-60 overflow-y-auto">
                           {subjects.map((subject: any) => (
-                            <SelectItem key={subject.id} value={subject.id}>{subject.name} (Sem {subject.semester})</SelectItem>
+                            <SelectItem key={subject.id} value={subject.id} className="cursor-pointer hover:bg-accent">{subject.name} (Sem {subject.semester})</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -644,7 +686,7 @@ const AdminPage = () => {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border border-border">
                         <SelectItem value="pdf">PDF</SelectItem>
                         <SelectItem value="image">Image</SelectItem>
                         <SelectItem value="video">Video</SelectItem>
