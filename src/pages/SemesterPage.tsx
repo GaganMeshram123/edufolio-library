@@ -9,200 +9,187 @@ import PDFViewer from '../components/PDFViewer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data for subjects by semester
-const semesterSubjects = {
-  '1': [
-    { id: 1, name: 'Engineering Mathematics I', resources: 24 },
-    { id: 2, name: 'Engineering Physics', resources: 18 },
-    { id: 3, name: 'Engineering Chemistry', resources: 16 },
-    { id: 4, name: 'Basic Electrical Engineering', resources: 21 },
-    { id: 5, name: 'Engineering Graphics', resources: 12 },
-  ],
-  '2': [
-    { id: 1, name: 'Engineering Mathematics II', resources: 22 },
-    { id: 2, name: 'Basic Electronics', resources: 19 },
-    { id: 3, name: 'Programming and Data Structures', resources: 25 },
-    { id: 4, name: 'Engineering Mechanics', resources: 17 },
-    { id: 5, name: 'Environmental Studies', resources: 14 },
-  ],
-  // ... remaining semesters
-};
+interface Subject {
+  id: string;
+  name: string;
+  description: string;
+  semester: number;
+  credits: number;
+  resource_count?: number;
+}
 
-// Mock data for semester descriptions
-const semesterDescriptions = {
-  '1': 'First semester focuses on fundamental sciences and basic engineering principles that form the foundation of your engineering education.',
-  '2': 'Second semester builds upon the basics and introduces core engineering concepts and programming fundamentals.',
-  '3': 'Third semester dives deeper into your chosen branch with specialized subjects and more advanced concepts.',
-  '4': 'Fourth semester focuses on core technical subjects and introduces more specialized areas of study.',
-  '5': 'Fifth semester introduces advanced topics in your specialization with more emphasis on applications.',
-  '6': 'Sixth semester covers complex engineering concepts and introduces electives for specialization.',
-  '7': 'Seventh semester focuses on industry-relevant topics and begins project work in specialized areas.',
-  '8': 'Final semester is dedicated to completing major projects and specialized elective courses.',
-};
-
-// Mock PDF data for subjects
-const subjectPDFs = {
-  'Engineering Mathematics I': [
-    { id: 1, title: 'Chapter 1: Calculus Fundamentals', fileSize: '3.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 2, title: 'Chapter 2: Differential Equations', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 3, title: 'Practice Problems Set 1', fileSize: '1.5 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Engineering Physics': [
-    { id: 4, title: 'Physics Lecture Notes - Part 1', fileSize: '4.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 5, title: 'Physics Experiments Manual', fileSize: '2.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Engineering Chemistry': [
-    { id: 6, title: 'Complete Chemistry Notes', fileSize: '5.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Basic Electrical Engineering': [
-    { id: 7, title: 'Circuit Theory Introduction', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 8, title: 'AC/DC Fundamentals', fileSize: '2.4 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Engineering Graphics': [
-    { id: 9, title: 'Technical Drawing Handbook', fileSize: '6.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Engineering Mathematics II': [
-    { id: 10, title: 'Vector Calculus Notes', fileSize: '2.9 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 11, title: 'Linear Algebra Complete Guide', fileSize: '3.6 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Basic Electronics': [
-    { id: 12, title: 'Digital Electronics Fundamentals', fileSize: '4.3 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 13, title: 'Semiconductor Devices', fileSize: '3.1 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Programming and Data Structures': [
-    { id: 14, title: 'C Programming Language Guide', fileSize: '3.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-    { id: 15, title: 'Data Structures Algorithms Notes', fileSize: '4.7 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Engineering Mechanics': [
-    { id: 16, title: 'Statics and Dynamics', fileSize: '5.2 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-  'Environmental Studies': [
-    { id: 17, title: 'Environmental Impact Analysis', fileSize: '2.8 MB', type: 'pdf', downloadUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
-  ],
-};
-
-// Add subject information data
-const subjectInformation = {
-  'Engineering Mathematics I': 'This foundational course covers calculus, differential equations, matrices, and other mathematical concepts essential for engineering applications. Students learn analytical skills for solving complex engineering problems.',
-  'Engineering Physics': 'Explores the fundamental principles of physics relevant to engineering, including mechanics, thermodynamics, optics, and modern physics concepts. Includes practical lab work to reinforce theoretical concepts.',
-  'Engineering Chemistry': 'Covers the basic principles of chemistry needed in engineering fields, including physical chemistry, electrochemistry, corrosion science, and engineering materials. Features laboratory experiments to demonstrate practical applications.',
-  'Basic Electrical Engineering': 'Introduces electrical circuit theory, network analysis, electromagnetic principles, and basic electrical measurement techniques. Students learn to analyze and design simple electrical circuits.',
-  'Engineering Graphics': 'Teaches technical drawing techniques, orthographic projections, isometric views, and computer-aided design fundamentals that enable engineers to communicate design concepts visually.',
-  'Engineering Mathematics II': 'Builds on Mathematics I with advanced topics including vector calculus, Fourier series, Laplace transforms, and probability theory. Focuses on mathematical tools used in engineering analysis.',
-  'Basic Electronics': 'Covers semiconductor devices, digital circuits, operational amplifiers, and electronic measurement systems. Includes practical design and testing of basic electronic circuits.',
-  'Programming and Data Structures': 'Introduces computer programming concepts, algorithms, data structures, and problem-solving techniques. Students learn to develop structured programs and implement efficient data management solutions.',
-  'Engineering Mechanics': 'Covers statics and dynamics principles, force systems, equilibrium conditions, kinematics, and kinetics. Students learn to analyze mechanical systems and solve engineering mechanics problems.',
-  'Environmental Studies': 'Examines environmental science fundamentals, ecosystem dynamics, pollution control, sustainability principles, and environmental policy. Emphasizes the engineer\'s role in environmental protection and sustainable development.'
-};
-
-// Mock resources data
-const mockResources = [
-  {
-    id: 1,
-    title: "Complete Mathematics I Notes",
-    type: "notes",
-    subject: "Engineering Mathematics I",
-    date: "2 weeks ago",
-    views: 542,
-    fileSize: "3.8 MB",
-  },
-  {
-    id: 2,
-    title: "Physics Mid Term Question Paper 2023",
-    type: "paper",
-    subject: "Engineering Physics",
-    date: "1 month ago",
-    views: 742,
-    fileSize: "1.5 MB",
-  },
-  {
-    id: 3,
-    title: "Chemistry Laboratory Manual",
-    type: "book",
-    subject: "Engineering Chemistry",
-    date: "3 weeks ago",
-    views: 412,
-    fileSize: "5.2 MB",
-  },
-  {
-    id: 4,
-    title: "Electrical Engineering Fundamentals",
-    type: "notes",
-    subject: "Basic Electrical Engineering",
-    date: "5 days ago",
-    views: 298,
-    fileSize: "4.1 MB",
-  },
-  {
-    id: 5,
-    title: "Engineering Graphics Practice Sheets",
-    type: "notes",
-    subject: "Engineering Graphics",
-    date: "2 days ago",
-    views: 185,
-    fileSize: "6.7 MB",
-  },
-  {
-    id: 6,
-    title: "Final Exam Previous Year Papers",
-    type: "paper",
-    subject: "Engineering Mathematics I",
-    date: "1 week ago",
-    views: 687,
-    fileSize: "2.9 MB",
-  },
-];
+interface Resource {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  file_url: string;
+  created_at: string;
+  subject_id: string;
+  subjects: {
+    name: string;
+    semester: number;
+  };
+}
 
 const SemesterPage = () => {
   const { semesterId } = useParams();
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
   const [activeSubject, setActiveSubject] = useState<string>('all');
   const [activeType, setActiveType] = useState<string>('all');
-  const [resources, setResources] = useState(mockResources);
   const [selectedPDF, setSelectedPDF] = useState<any>(null);
   const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  const semester = semesterId || '1';
-  const subjects = semesterSubjects[semester as keyof typeof semesterSubjects] || [];
-  const description = semesterDescriptions[semester as keyof typeof semesterDescriptions] || '';
+  const semester = parseInt(semesterId || '1');
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    
-    // Filter based on subject and type
-    let filtered = [...mockResources];
+    fetchSemesterData();
+  }, [semester]);
+
+  useEffect(() => {
+    filterResources();
+  }, [activeSubject, activeType, resources]);
+
+  const fetchSemesterData = async () => {
+    setLoading(true);
+    try {
+      // Fetch subjects for this semester
+      const { data: subjectsData, error: subjectsError } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('semester', semester);
+
+      if (subjectsError) throw subjectsError;
+
+      // Fetch resources for subjects in this semester
+      const subjectIds = subjectsData?.map(s => s.id) || [];
+      
+      let resourcesData: Resource[] = [];
+      if (subjectIds.length > 0) {
+        const { data, error: resourcesError } = await supabase
+          .from('resources')
+          .select(`
+            *,
+            subjects (
+              name,
+              semester
+            )
+          `)
+          .in('subject_id', subjectIds);
+
+        if (resourcesError) throw resourcesError;
+        resourcesData = data || [];
+      }
+
+      // Count resources per subject
+      const subjectsWithCounts = subjectsData?.map(subject => ({
+        ...subject,
+        resource_count: resourcesData.filter(r => r.subject_id === subject.id).length
+      })) || [];
+
+      setSubjects(subjectsWithCounts);
+      setResources(resourcesData);
+    } catch (error) {
+      console.error('Error fetching semester data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load semester data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterResources = () => {
+    let filtered = [...resources];
     
     if (activeSubject !== 'all') {
-      filtered = filtered.filter(resource => resource.subject === activeSubject);
+      filtered = filtered.filter(resource => resource.subjects?.name === activeSubject);
     }
     
     if (activeType !== 'all') {
-      filtered = filtered.filter(resource => resource.type === activeType);
+      const typeMap: { [key: string]: string[] } = {
+        'notes': ['notes', 'pdf'],
+        'paper': ['paper', 'question_paper'],
+        'book': ['book', 'solution']
+      };
+      
+      const allowedTypes = typeMap[activeType] || [activeType];
+      filtered = filtered.filter(resource => allowedTypes.includes(resource.type.toLowerCase()));
     }
     
-    setResources(filtered);
-  }, [activeSubject, activeType]);
-
-  const handlePDFView = (pdf: any) => {
-    setSelectedPDF(pdf);
-    setIsPDFViewerOpen(true);
+    setFilteredResources(filtered);
   };
 
-  const handlePDFDownload = (pdf: any) => {
-    // Create a temporary link to download the PDF
-    const link = document.createElement('a');
-    link.href = pdf.downloadUrl;
-    link.setAttribute('download', `${pdf.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      description: "PDF downloaded successfully!",
-      duration: 3000,
-    });
+  const handlePDFView = (resource: Resource) => {
+    if (resource.file_url) {
+      setSelectedPDF({
+        title: resource.title,
+        pdfUrl: resource.file_url,
+        fileSize: '0 MB', // We don't store file size, could be calculated
+        subjectInfo: resource.description
+      });
+      setIsPDFViewerOpen(true);
+    }
   };
+
+  const handlePDFDownload = (resource: Resource) => {
+    if (resource.file_url) {
+      const link = document.createElement('a');
+      link.href = resource.file_url;
+      link.setAttribute('download', `${resource.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        description: "Resource downloaded successfully!",
+        duration: 3000,
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return `${Math.ceil(diffDays / 30)} months ago`;
+  };
+
+  const getResourceTypeDisplay = (type: string): 'notes' | 'paper' | 'book' => {
+    const typeMap: { [key: string]: 'notes' | 'paper' | 'book' } = {
+      'pdf': 'notes',
+      'notes': 'notes',
+      'paper': 'paper',
+      'question_paper': 'paper',
+      'book': 'book',
+      'solution': 'book'
+    };
+    return typeMap[type.toLowerCase()] || 'notes';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading semester data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -231,7 +218,9 @@ const SemesterPage = () => {
                 transition={{ duration: 0.5 }}
               >
                 <h1 className="text-3xl md:text-4xl font-bold mb-3">Semester {semester} Resources</h1>
-                <p className="text-gray-600 max-w-3xl">{description}</p>
+                <p className="text-gray-600 max-w-3xl">
+                  Explore academic resources for semester {semester}. Access notes, question papers, and study materials for all subjects.
+                </p>
               </motion.div>
             </div>
             
@@ -268,9 +257,9 @@ const SemesterPage = () => {
                             }`}
                             onClick={() => setActiveSubject(subject.name)}
                           >
-                            <span>{subject.name}</span>
-                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
-                              {subject.resources}
+                            <span className="truncate">{subject.name}</span>
+                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full ml-2">
+                              {subject.resource_count || 0}
                             </span>
                           </button>
                         </li>
@@ -346,119 +335,125 @@ const SemesterPage = () => {
                       {activeType !== 'all' && ` - ${activeType === 'notes' ? 'Notes' : activeType === 'paper' ? 'Question Papers' : 'Books/Solutions'}`}
                     </h3>
                     <span className="text-sm text-gray-500">
-                      {resources.length} resources found
+                      {filteredResources.length} resources found
                     </span>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <AnimatePresence>
-                      {resources.length > 0 ? (
-                        resources.map((resource, index) => (
+                  {filteredResources.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <AnimatePresence>
+                        {filteredResources.map((resource, index) => (
                           <motion.div
                             key={resource.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3, delay: index * 0.05 }}
+                            transition={{ duration: 0.4, delay: index * 0.1 }}
                           >
                             <ResourceCard
                               title={resource.title}
-                              type={resource.type as 'notes' | 'paper' | 'book'}
-                              subject={resource.subject}
-                              date={resource.date}
-                              views={resource.views}
-                              fileSize={resource.fileSize}
+                              type={getResourceTypeDisplay(resource.type)}
+                              subject={resource.subjects?.name || 'Unknown Subject'}
+                              date={formatDate(resource.created_at)}
+                              views={Math.floor(Math.random() * 1000)} // Random views for now
+                              fileSize="0 MB" // File size not stored
+                              delay={index}
                             />
                           </motion.div>
-                        ))
-                      ) : (
-                        <motion.div 
-                          className="col-span-2 py-10 text-center"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <p className="text-gray-500">No resources found matching your criteria.</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                {/* Subject PDFs Section */}
-                {activeSubject !== 'all' && subjectPDFs[activeSubject as keyof typeof subjectPDFs] && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <div className="mb-6">
-                      <h3 className="font-bold text-lg flex items-center gap-2 mb-2">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        {activeSubject} PDF Resources
-                      </h3>
-                      <p className="text-gray-500 text-sm">
-                        Download or view PDF resources for {activeSubject}
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No resources found</h3>
+                      <p className="text-gray-500">
+                        No resources found matching your criteria. Try adjusting your filters or check back later.
                       </p>
                     </div>
+                  )}
+                </div>
+
+                {/* PDF Resources Section */}
+                {activeSubject !== 'all' && (
+                  <motion.div 
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                  >
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                      <File className="h-5 w-5 text-blue-600" />
+                      {activeSubject} PDF Resources
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Download or view PDF resources for {activeSubject}
+                    </p>
                     
                     <div className="space-y-4">
-                      {subjectPDFs[activeSubject as keyof typeof subjectPDFs].map((pdf) => (
-                        <div 
-                          key={pdf.id} 
-                          className="flex items-center justify-between border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="bg-blue-100 p-2 rounded text-blue-800">
-                              <FileText className="h-6 w-6" />
+                      {filteredResources
+                        .filter(r => r.subjects?.name === activeSubject && r.file_url)
+                        .map((resource) => (
+                          <div 
+                            key={resource.id}
+                            className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-red-50 rounded-lg">
+                                <File className="h-5 w-5 text-red-500" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-gray-900">{resource.title}</h4>
+                                <p className="text-sm text-gray-500">PDF Document</p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900">{pdf.title}</h4>
-                              <p className="text-sm text-gray-500">{pdf.fileSize}</p>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePDFView(resource)}
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              >
+                                View
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handlePDFDownload(resource)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                Download
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="flex items-center gap-1"
-                              onClick={() => handlePDFView(pdf)}
-                            >
-                              <FileText className="h-4 w-4" />
-                              <span className="hidden sm:inline">View</span>
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="default" 
-                              className="flex items-center gap-1"
-                              onClick={() => handlePDFDownload(pdf)}
-                            >
-                              <Download className="h-4 w-4" />
-                              <span className="hidden sm:inline">Download</span>
-                            </Button>
-                          </div>
+                        ))}
+                      
+                      {filteredResources.filter(r => r.subjects?.name === activeSubject && r.file_url).length === 0 && (
+                        <div className="text-center py-8">
+                          <File className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500">No PDF resources available for this subject yet.</p>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </motion.div>
             </div>
           </div>
         </main>
         
-        {/* PDF Viewer Dialog */}
+        <Footer />
+        
         {selectedPDF && (
           <PDFViewer
             title={selectedPDF.title}
-            pdfUrl={selectedPDF.downloadUrl}
+            pdfUrl={selectedPDF.pdfUrl}
             fileSize={selectedPDF.fileSize}
             isOpen={isPDFViewerOpen}
-            onClose={() => {
-              setIsPDFViewerOpen(false);
-              setSelectedPDF(null);
-            }}
-            subjectInfo={subjectInformation[activeSubject as keyof typeof subjectInformation]}
+            onClose={() => setIsPDFViewerOpen(false)}
+            subjectInfo={selectedPDF.subjectInfo}
           />
         )}
-        
-        <Footer />
       </motion.div>
     </AnimatePresence>
   );
