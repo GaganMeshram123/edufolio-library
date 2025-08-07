@@ -373,7 +373,7 @@ const ResourcesPage = () => {
                           subject={resource.subjects?.name || 'Unknown Subject'}
                           date={formatDate(resource.created_at)}
                           views={Math.floor(Math.random() * 1000)} // Random views for now
-                          fileSize="0 MB" // File size not stored
+                          fileSize="PDF File" // Will show as "PDF File" since size isn't stored
                           fileUrl={resource.file_url}
                           delay={index}
                         />

@@ -18,19 +18,32 @@ const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose, subjectInfo }: PD
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
 
-  const handleDownload = () => {
-    // Create a temporary link to download the PDF
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.setAttribute('download', `${title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(pdfUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(url);
 
-    toast({
-      description: "PDF downloaded successfully!",
-      duration: 3000,
-    });
+      toast({
+        description: "PDF downloaded successfully!",
+        duration: 3000,
+      });
+    } catch (error) {
+      toast({
+        title: "Download Error",
+        description: "Failed to download PDF. Please try 'Open in New Tab' instead.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -70,8 +83,10 @@ const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose, subjectInfo }: PD
               </div>
             </div>
           )}
+          
+          {/* Primary PDF display method */}
           <iframe 
-            src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`} 
+            src={pdfUrl} 
             className="w-full h-full"
             title={title}
             onLoad={() => setIsLoading(false)}
@@ -79,7 +94,7 @@ const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose, subjectInfo }: PD
               setIsLoading(false);
               toast({
                 title: "PDF Loading Error",
-                description: "Unable to display PDF in browser. Please download or open in new tab.",
+                description: "Unable to display PDF. Please use download or open in new tab options.",
                 variant: "destructive"
               });
             }}
