@@ -10,6 +10,7 @@ interface ResourceCardProps {
   date: string;
   views: number;
   fileSize: string;
+  fileUrl?: string;
   delay?: number;
 }
 
@@ -20,6 +21,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
   date,
   views,
   fileSize,
+  fileUrl,
   delay = 0
 }) => {
   const getIcon = () => {
@@ -48,12 +50,29 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fileUrl) {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = title;
+      link.click();
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: delay * 0.1 }}
-      className="neo-card p-5 hover:shadow-md group"
+      className="neo-card p-5 hover:shadow-md group cursor-pointer"
+      onClick={handleCardClick}
     >
       <div className="flex justify-between">
         <div className="flex-1">
@@ -84,7 +103,10 @@ const ResourceCard: React.FC<ResourceCardProps> = ({
           className="flex flex-col items-center justify-between"
           whileHover={{ scale: 1.05 }}
         >
-          <button className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+          <button 
+            onClick={handleDownload}
+            className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          >
             <Download className="h-5 w-5" />
           </button>
           <span className="text-xs text-gray-500 mt-2">{fileSize}</span>

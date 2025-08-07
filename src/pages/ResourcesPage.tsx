@@ -374,6 +374,7 @@ const ResourcesPage = () => {
                           date={formatDate(resource.created_at)}
                           views={Math.floor(Math.random() * 1000)} // Random views for now
                           fileSize="0 MB" // File size not stored
+                          fileUrl={resource.file_url}
                           delay={index}
                         />
                       </motion.div>
