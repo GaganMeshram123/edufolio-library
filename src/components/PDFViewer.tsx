@@ -71,10 +71,18 @@ const PDFViewer = ({ title, pdfUrl, fileSize, isOpen, onClose, subjectInfo }: PD
             </div>
           )}
           <iframe 
-            src={`${pdfUrl}#toolbar=0&navpanes=0`} 
+            src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`} 
             className="w-full h-full"
             title={title}
             onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setIsLoading(false);
+              toast({
+                title: "PDF Loading Error",
+                description: "Unable to display PDF in browser. Please download or open in new tab.",
+                variant: "destructive"
+              });
+            }}
           />
         </div>
         
